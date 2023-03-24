@@ -63,48 +63,54 @@ const (
 	URL_STYLE_DASHED   UrlStyleType = "DASHED"
 )
 
+var defaultConfig = Config{
+	FontFamily:      "monospace",
+	BoldFont:        "monospace",
+	ItalicFont:      "monospace",
+	BoldItalicFont:  "monospace",
+	FontSize:        16.0,
+	CursorColor:     parseColor("#6796E6"),
+	CursorTextColor: parseColor("#111"),
+	CursorShape:     CURSOR_SHAPE_BLOCK,
+	ScrollbackLines: 2000,
+	UrlColor:        parseColor("#0087bd"),
+	UrlStyle:        URL_STYLE_CURLY,
+	OpenUrlWith:     "default",
+	UrlPrefixes:     []string{"http", "https", "ssh"},
+	DetectUrls:      true,
+	RepaintDeplay:   100,
+	ForegroundColor: parseColor("#F1F1F0"),
+	BackgroundColor: parseColor("#1F212A"),
+	Color0:          parseColor("#282A36"),
+	Color1:          parseColor("#FF5C57"),
+	Color2:          parseColor("#5AF78E"),
+	Color3:          parseColor("#F3F99D"),
+	Color4:          parseColor("#57C7FF"),
+	Color5:          parseColor("#FF6AC1"),
+	Color6:          parseColor("#9AEDFE"),
+	Color7:          parseColor("#F1F1F0"),
+	Color8:          parseColor("#686868"),
+	Color9:          parseColor("#F66151"),
+	Color10:         parseColor("#33DA7A"),
+	Color11:         parseColor("#E9AD0C"),
+	Color15:         parseColor("#FFF"),
+	Color12:         parseColor("#2A7BDE"),
+	Color13:         parseColor("#C061CB"),
+	Color14:         parseColor("#33C7DE"),
+	Shell:           ".",
+}
+
 func Load() *Config {
 	conf, err := parseFile()
 	if err != nil {
-		conf.setDefault()
+		conf = &defaultConfig
 	}
 
 	return conf
 }
 
-func (c *Config) setDefault() {
-	c.FontFamily = "monospace"
-	c.BoldFont = "monospace"
-	c.ItalicFont = "monospace"
-	c.BoldItalicFont = "monospace"
-	c.FontSize = 16.0
-	c.CursorColor, _ = utils.ParseColor("#6796E6")
-	c.CursorTextColor, _ = utils.ParseColor("#111")
-	c.CursorShape = CURSOR_SHAPE_BLOCK
-	c.ScrollbackLines = 2000
-	c.UrlColor, _ = utils.ParseColor("#0087bd")
-	c.UrlStyle = URL_STYLE_CURLY
-	c.OpenUrlWith = "default"
-	c.UrlPrefixes = []string{"http", "https", "ssh"}
-	c.DetectUrls = true
-	c.RepaintDeplay = 10
-	c.ForegroundColor, _ = utils.ParseColor("#F1F1F0")
-	c.BackgroundColor, _ = utils.ParseColor("#1F212A")
-	c.Color0, _ = utils.ParseColor("#282A36")
-	c.Color1, _ = utils.ParseColor("#FF5C57")
-	c.Color2, _ = utils.ParseColor("#5AF78E")
-	c.Color3, _ = utils.ParseColor("#F3F99D")
-	c.Color4, _ = utils.ParseColor("#57C7FF")
-	c.Color5, _ = utils.ParseColor("#FF6AC1")
-	c.Color6, _ = utils.ParseColor("#9AEDFE")
-	c.Color7, _ = utils.ParseColor("#F1F1F0")
-	c.Color8, _ = utils.ParseColor("#686868")
-	c.Color9, _ = utils.ParseColor("#F66151")
-	c.Color10, _ = utils.ParseColor("#33DA7A")
-	c.Color11, _ = utils.ParseColor("#E9AD0C")
-	c.Color15, _ = utils.ParseColor("#FFF")
-	c.Color12, _ = utils.ParseColor("#2A7BDE")
-	c.Color13, _ = utils.ParseColor("#C061CB")
-	c.Color14, _ = utils.ParseColor("#33C7DE")
-	c.Shell = "."
+func parseColor(str string) (c color.RGBA) {
+	c, _ = utils.ParseColor(str)
+
+	return
 }

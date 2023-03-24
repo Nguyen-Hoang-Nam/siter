@@ -1,7 +1,7 @@
 //go:build darwins || linux
 // +build darwins linux
 
-package utils
+package pty
 
 import (
 	"bufio"
@@ -9,22 +9,22 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"siter/config"
 
 	"github.com/creack/pty"
 )
 
-const MaxBufferSize = 16
-
 type PTYUnix struct {
-	process      *os.File
-	shellCommand string
+	process       *os.File
+	shellCommand  string
+	maxBufferSize int
 }
 
-func NewPTYWindows(shellCommand string) (IPTY, error) {
+func NewPTYWindows(c config.Config) (IPTY, error) {
 	return nil, errors.New("MISS_MATCH_OS")
 }
 
-func NewPTYUnix(shellCommand string) (p PTYUnix, err error) {
+func NewPTYUnix(c config.Config) (p PTYUnix, err error) {
 	os.Setenv("TERM", "dumb")
 	startCommand := exec.Command("/bin/bash")
 	process, err := pty.Start(startCommand)
@@ -32,15 +32,15 @@ func NewPTYUnix(shellCommand string) (p PTYUnix, err error) {
 		return p, err
 	}
 
-	return PTYUnix{process: process, shellCommand: shellCommand}, nil
+	return PTYUnix{process: process, shellCommand: c.Shell, maxBufferSize: c.ScrollbackLines}, nil
 }
 
-func (p PTYUnix) Read(buffer [][]rune) {
+func (p PTYUnix) Read(buffer *[][]rune) {
 	reader := bufio.NewReader(p.process)
 
 	go func() {
 		line := []rune{}
-		buffer = append(buffer, line)
+		*buffer = append(*buffer, line)
 		for {
 			r, _, err := reader.ReadRune()
 			if err != nil {
@@ -51,14 +51,14 @@ func (p PTYUnix) Read(buffer [][]rune) {
 			}
 
 			line = append(line, r)
-			buffer[len(buffer)-1] = line
+			(*buffer)[len(*buffer)-1] = line
 			if r == '\n' {
-				if len(buffer) > MaxBufferSize {
-					buffer = buffer[1:]
+				if len(*buffer) > p.maxBufferSize {
+					*buffer = (*buffer)[1:]
 				}
 
 				line = []rune{}
-				buffer = append(buffer, line)
+				*buffer = append(*buffer, line)
 			}
 		}
 	}()

@@ -1,17 +1,17 @@
 package ui
 
 import (
-	"siter/utils"
+	"siter/pty"
 
 	"fyne.io/fyne/v2"
 )
 
 type Event struct {
-	process utils.IPTY
+	process pty.IPTY
 	canvas  fyne.Canvas
 }
 
-func NewEvent(process utils.IPTY, canvas fyne.Canvas) *Event {
+func NewEvent(process pty.IPTY, canvas fyne.Canvas) *Event {
 	return &Event{
 		process: process,
 		canvas:  canvas,

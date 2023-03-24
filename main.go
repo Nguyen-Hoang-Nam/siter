@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"siter/config"
+	"siter/pty"
 	"siter/ui"
-	"siter/utils"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -20,7 +20,7 @@ func main() {
 	window := app.NewWindow("Siter")
 	textGrid := widget.NewTextGrid()
 
-	process, err := utils.GetShell(conf.Shell)
+	process, err := pty.GetShell(*conf)
 	if err != nil {
 		fyne.LogError("Failed to open pty", err)
 		os.Exit(1)
@@ -31,13 +31,13 @@ func main() {
 	ui.NewEvent(process, window.Canvas()).Load()
 
 	buffer := [][]rune{}
-	process.Read(buffer)
+	process.Read(&buffer)
 
-	ui.NewRendering(conf, textGrid, buffer).Render()
+	ui.NewRendering(textGrid, &buffer, conf).Render()
 
 	window.SetContent(
 		fyne.NewContainerWithLayout(
-			layout.NewGridWrapLayout(fyne.NewSize(900, 325)),
+			layout.NewMaxLayout(),
 			textGrid,
 		),
 	)

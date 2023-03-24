@@ -1,38 +1,41 @@
 //go:build windows
 // +build windows
 
-package utils
+package pty
 
 import (
 	"io"
 	"os"
 	"unicode/utf8"
 
+	"siter/config"
+
 	"github.com/UserExistsError/conpty"
 )
 
 type PTYWindows struct {
-	cpty         conpty.ConPty
-	shellCommand string
+	cpty          conpty.ConPty
+	shellCommand  string
+	maxBufferSize int
 }
 
-func NewPTYUnix(shellCommand string) (IPTY, error) {
+func NewPTYUnix(c config.Config) (IPTY, error) {
 	return nil, errors.New("MISS_MATCH_OS")
 }
 
-func NewPTYWindows(shellCommand string) (p PTYWindows, err error) {
-	cpty, err := conpty.Start(shellCommand)
+func NewPTYWindows(c config.Config) (p PTYWindows, err error) {
+	cpty, err := conpty.Start(c.Shell)
 	if err != nil {
 		return p, err
 	}
 
-	return PTYWindows{cpty: cpty, shellCommand: shellCommand}, nil
+	return PTYWindows{cpty: cpty, shellCommand: c.Shell, maxBufferSize: c.ScrollbackLines}, nil
 }
 
-func (p PTYWindows) Read(buffer [][]rune) {
+func (p PTYWindows) Read(buffer *[][]rune) {
 	go func() {
 		line := []byte{}
-		buffer = append(buffer, line)
+		*buffer = append(*buffer, line)
 
 		for {
 			n, err := p.cpty.Read(line)
@@ -43,14 +46,14 @@ func (p PTYWindows) Read(buffer [][]rune) {
 				os.Exit(0)
 			}
 
-			buffer[len(buffer)-1] = line
+			(*buffer)[len(buffer)-1] = line
 			if n > 0 {
-				if len(buffer) > MaxBufferSize {
-					buffer = buffer[1:]
+				if len(*buffer) > p.maxBufferSize {
+					*buffer = (*buffer)[1:]
 				}
 
 				line = []rune{}
-				buffer = append(buffer, utf8.DecodeRune(line[:n]))
+				*buffer = append(*buffer, utf8.DecodeRune(line[:n]))
 			}
 		}
 	}()
