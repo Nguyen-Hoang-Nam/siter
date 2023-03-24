@@ -1,4 +1,4 @@
-package siter
+package utils
 
 func Clear_backspace(str string) string {
 	result := []rune("")
