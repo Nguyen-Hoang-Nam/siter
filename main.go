@@ -9,6 +9,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
@@ -19,6 +20,7 @@ func main() {
 	app := app.New()
 	window := app.NewWindow("Siter")
 	textGrid := widget.NewTextGrid()
+	scrollContainer := container.NewVScroll(textGrid)
 
 	process, err := pty.GetShell(*conf)
 	if err != nil {
@@ -33,13 +35,13 @@ func main() {
 	buffer := [][]rune{}
 	process.Read(&buffer)
 
-	ui.NewRendering(textGrid, &buffer, conf).Render()
+	ui.NewRendering(scrollContainer, textGrid, &buffer, conf).Render()
 
 	window.SetContent(
-		fyne.NewContainerWithLayout(
-			layout.NewMaxLayout(),
-			textGrid,
-		),
+		container.New(layout.NewMaxLayout(), scrollContainer),
 	)
+
+	scrollContainer.ScrollToBottom()
+
 	window.ShowAndRun()
 }

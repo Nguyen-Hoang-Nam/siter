@@ -1,9 +1,13 @@
 package utils
 
-func Clear_backspace(str string) string {
+func ClearBackspace(str string) string {
 	result := []rune("")
 	backspace := 0
 	for i := len(str) - 1; i >= 0; i-- {
+		if str[i] == 7 {
+			continue
+		}
+
 		if str[i] == '\b' {
 			backspace++
 		} else {

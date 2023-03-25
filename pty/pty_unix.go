@@ -26,7 +26,7 @@ func NewPTYWindows(c config.Config) (IPTY, error) {
 
 func NewPTYUnix(c config.Config) (p PTYUnix, err error) {
 	os.Setenv("TERM", "dumb")
-	startCommand := exec.Command("/bin/bash")
+	startCommand := exec.Command(c.Shell)
 	process, err := pty.Start(startCommand)
 	if err != nil {
 		return p, err
