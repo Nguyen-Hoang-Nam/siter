@@ -20,6 +20,7 @@ type Rendering struct {
 
 func NewRendering(scrollContainer *container.Scroll, textGrid *widget.TextGrid, buffer *[][]rune, config *config.Config) *Rendering {
 	terminalColor := map[string]color.RGBA{
+		"[0":     config.ForegroundColor,
 		"[0;30":  config.Color0,
 		"[0;31":  config.Color1,
 		"[0;32":  config.Color2,
@@ -76,23 +77,16 @@ func (r *Rendering) style(text string) {
 	row := 0
 	col := 0
 	isNewColor := false
-	isColor := false
 	asciiColor := []byte("")
-	currentColor := color.RGBA{}
+	currentColor := r.termianlColor["[0"]
 
 	for i := range text {
 		if text[i] == 27 {
 			isNewColor = true
 		} else {
 			if isNewColor && text[i] == 'm' {
-				if string(asciiColor) == "[0" {
-					asciiColor = []byte("")
-					isColor = false
-				} else {
-					isColor = true
-					currentColor = r.termianlColor[string(asciiColor)]
-					asciiColor = []byte("")
-				}
+				currentColor = r.termianlColor[string(asciiColor)]
+				asciiColor = []byte("")
 
 				isNewColor = false
 			} else if isNewColor {
@@ -100,11 +94,7 @@ func (r *Rendering) style(text string) {
 			}
 		}
 
-		if isColor {
-			r.textGrid.SetStyle(row, col, &widget.CustomTextGridStyle{FGColor: currentColor})
-		} else {
-			r.textGrid.SetStyle(row, col, widget.TextGridStyleDefault)
-		}
+		r.textGrid.SetStyle(row, col, &widget.CustomTextGridStyle{FGColor: currentColor})
 
 		if !isNewColor {
 			if text[i] == '\n' {
