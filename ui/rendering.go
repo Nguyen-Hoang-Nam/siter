@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"fmt"
+	"image/color"
 	"siter/config"
 	"siter/utils"
 	"time"
@@ -15,10 +15,30 @@ type Rendering struct {
 	textGrid        *widget.TextGrid
 	scrollContainer *container.Scroll
 	buffer          *[][]rune
+	termianlColor   map[string]color.RGBA
 }
 
 func NewRendering(scrollContainer *container.Scroll, textGrid *widget.TextGrid, buffer *[][]rune, config *config.Config) *Rendering {
-	return &Rendering{config: config, textGrid: textGrid, buffer: buffer, scrollContainer: scrollContainer}
+	terminalColor := map[string]color.RGBA{
+		"[0;30":  config.Color0,
+		"[0;31":  config.Color1,
+		"[0;32":  config.Color2,
+		"[0;33":  config.Color3,
+		"[0;34":  config.Color4,
+		"[0;35":  config.Color5,
+		"[0;36":  config.Color6,
+		"[0;37":  config.Color7,
+		"[01;30": config.Color8,
+		"[01;31": config.Color9,
+		"[01;32": config.Color10,
+		"[01;33": config.Color11,
+		"[01;34": config.Color12,
+		"[01;35": config.Color13,
+		"[01;36": config.Color14,
+		"[01;37": config.Color15,
+	}
+
+	return &Rendering{config: config, textGrid: textGrid, buffer: buffer, scrollContainer: scrollContainer, termianlColor: terminalColor}
 }
 
 func (r *Rendering) Render() {
@@ -35,10 +55,10 @@ func (r *Rendering) Render() {
 			}
 
 			if length != len(lines) {
-				cleanText := utils.ClearBackspace(lines)
+				cleanBackspaceText := utils.ClearBackspace(lines)
 				// r.Clear()
-				r.Set(cleanText)
-				// r.style(lines)
+				r.Set(utils.ClearColor(cleanBackspaceText))
+				r.style(cleanBackspaceText)
 
 				length = len(lines)
 			}
@@ -55,16 +75,46 @@ func (r *Rendering) Render() {
 func (r *Rendering) style(text string) {
 	row := 0
 	col := 0
+	isNewColor := false
+	isColor := false
+	asciiColor := []byte("")
+	currentColor := color.RGBA{}
 
 	for i := range text {
-		if text[i] == '\n' {
-			row++
-			col = 0
-			fmt.Printf("\n\n")
+		if text[i] == 27 {
+			isNewColor = true
 		} else {
-			fmt.Printf("%d ", text[i])
-			col++
+			if isNewColor && text[i] == 'm' {
+				if string(asciiColor) == "[0" {
+					asciiColor = []byte("")
+					isColor = false
+				} else {
+					isColor = true
+					currentColor = r.termianlColor[string(asciiColor)]
+					asciiColor = []byte("")
+				}
+
+				isNewColor = false
+			} else if isNewColor {
+				asciiColor = append(asciiColor, text[i])
+			}
 		}
+
+		if isColor {
+			r.textGrid.SetStyle(row, col, &widget.CustomTextGridStyle{FGColor: currentColor})
+		} else {
+			r.textGrid.SetStyle(row, col, widget.TextGridStyleDefault)
+		}
+
+		if !isNewColor {
+			if text[i] == '\n' {
+				row++
+				col = 0
+			} else {
+				col++
+			}
+		}
+
 	}
 }
 

@@ -1,5 +1,23 @@
 package utils
 
+func ClearColor(str string) string {
+	result := []rune("")
+	color := false
+	for i := 0; i < len(str); i++ {
+		if str[i] == 27 {
+			color = true
+		} else {
+			if color && str[i] == 'm' {
+				color = false
+			} else if !color {
+				result = append(result, rune(str[i]))
+			}
+		}
+	}
+
+	return string(result)
+}
+
 func ClearBackspace(str string) string {
 	result := []rune("")
 	backspace := 0
