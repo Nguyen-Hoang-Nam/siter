@@ -2,8 +2,11 @@
 
 Base on [here](https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-lines-of-go/)
 
-![Ubuntu](https://raw.githubusercontent.com/namngh/assets/main/siter/ls.jpg)
+![Ubuntu](https://raw.githubusercontent.com/namngh/assets/main/siter/linux-ls.jpg)
 *Ubuntu*
+
+![Windows 10](https://raw.githubusercontent.com/namngh/assets/main/siter/windows-echo.jpg)
+*Windows 10*
 
 ## Configuration
 
