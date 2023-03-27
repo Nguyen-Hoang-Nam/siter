@@ -50,7 +50,8 @@ func startWindow(c config.Config) (process IPTY) {
 
 func getShellLinux(c config.Config) (process IPTY, err error) {
 	if c.Shell == "." {
-		c.Shell = os.Getenv("SHELL")
+		// c.Shell = os.Getenv("SHELL")
+		c.Shell = "bash"
 		if c.Shell == "" {
 			return process, ERROR_SHELL_NOT_FOUND
 		}

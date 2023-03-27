@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 func ClearColor(str string) string {
 	result := []rune("")
