@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"runtime"
 	"siter/pty"
 
 	"fyne.io/fyne/v2"
@@ -26,7 +27,11 @@ func (event *Event) Load() {
 
 func (event *Event) onTypedKey(e *fyne.KeyEvent) {
 	if e.Name == fyne.KeyEnter || e.Name == fyne.KeyReturn {
-		_, _ = event.process.Write([]byte{'\r'})
+		if runtime.GOOS == "windows" {
+			_, _ = event.process.Write([]byte("\r\n"))
+		} else {
+			_, _ = event.process.Write([]byte{'\r'})
+		}
 	}
 
 	if e.Name == fyne.KeyBackspace {

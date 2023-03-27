@@ -4,17 +4,17 @@
 package pty
 
 import (
-	"io"
+	"errors"
 	"os"
-	"unicode/utf8"
 
 	"siter/config"
+	// "siter/utils"
 
 	"github.com/UserExistsError/conpty"
 )
 
 type PTYWindows struct {
-	cpty          conpty.ConPty
+	cpty          *conpty.ConPty
 	shellCommand  string
 	maxBufferSize int
 }
@@ -34,33 +34,39 @@ func NewPTYWindows(c config.Config) (p PTYWindows, err error) {
 
 func (p PTYWindows) Read(buffer *[][]rune) {
 	go func() {
-		line := []byte{}
-		*buffer = append(*buffer, line)
+		// logger, _ := utils.NewLog("siter-log.txt")
+		// defer logger.Close()
+
+		line := make([]byte, 1000)
 
 		for {
 			n, err := p.cpty.Read(line)
 			if err != nil {
-				// if err == io.EOF {
-				// 	return
-				// }
 				os.Exit(0)
 			}
 
-			(*buffer)[len(buffer)-1] = line
 			if n > 0 {
-				if len(*buffer) > p.maxBufferSize {
-					*buffer = (*buffer)[1:]
+				if p.shellCommand == "cmd" {
+					if len(*buffer) > p.maxBufferSize {
+						*buffer = (*buffer)[1:]
+					}
+
+					// logger.Show(string(line[:n]))
+
+					*buffer = append(*buffer, []rune(string(line[:n])))
+				} else if p.shellCommand == "powershell" {
+					*buffer = append(*buffer, []rune("Not supported powershell yet."))
+				} else {
+					*buffer = append(*buffer, []rune("Not supported powershell yet."))
 				}
 
-				line = []rune{}
-				*buffer = append(*buffer, utf8.DecodeRune(line[:n]))
 			}
 		}
 	}()
 }
 
 func (p PTYWindows) Write(text []byte) (int, error) {
-	return r.cpty.Write(text)
+	return p.cpty.Write(text)
 }
 
 func (p PTYWindows) Close() {

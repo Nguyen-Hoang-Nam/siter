@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"runtime"
 	"siter/config"
 	"siter/utils"
 	"time"
@@ -57,9 +58,12 @@ func (r *Rendering) Render() {
 
 			if length != len(lines) {
 				cleanBackspaceText := utils.ClearBackspace(lines)
-				// r.Clear()
-				r.Set(utils.ClearColor(cleanBackspaceText))
-				r.style(cleanBackspaceText)
+				if runtime.GOOS == "windows" {
+					r.Set(utils.ClearBackspace(utils.ClearWindowsEscapeKey(lines)))
+				} else {
+					r.Set(utils.ClearColor(cleanBackspaceText))
+					r.style(cleanBackspaceText)
+				}
 
 				length = len(lines)
 			}

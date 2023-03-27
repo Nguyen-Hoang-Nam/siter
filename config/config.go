@@ -97,7 +97,7 @@ var defaultConfig = Config{
 	Color12:         parseColor("#2A7BDE"),
 	Color13:         parseColor("#C061CB"),
 	Color14:         parseColor("#33C7DE"),
-	Shell:           "bash",
+	Shell:           ".",
 }
 
 func Load() *Config {
