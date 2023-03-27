@@ -29,7 +29,7 @@ func GetShell(c config.Config) (process IPTY, err error) {
 
 func getShellWindow(c config.Config) (process IPTY, err error) {
 	if c.Shell == "." {
-		c.Shell = os.Getenv("SHELL")
+		c.Shell = "cmd"
 		if c.Shell == "" {
 			return process, ERROR_SHELL_NOT_FOUND
 		}

@@ -14,6 +14,14 @@ func parseFile() (c *Config, err error) {
 	configDir := env.GetSiterConfigDirectory()
 	configPath := path.Join(configDir, CONFIG_FILE_NAME)
 
+	if _, err = os.Stat(configDir); os.IsNotExist(err) {
+		return
+	}
+
+	if _, err = os.Stat(configPath); os.IsNotExist(err) {
+		return
+	}
+
 	configData, err := os.ReadFile(configPath)
 	if err != nil {
 		return
