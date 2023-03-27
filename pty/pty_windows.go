@@ -4,9 +4,8 @@
 package pty
 
 import (
-	"io"
+	"errors"
 	"os"
-	"unicode/utf8"
 
 	"siter/config"
 
@@ -14,7 +13,7 @@ import (
 )
 
 type PTYWindows struct {
-	cpty          conpty.ConPty
+	cpty          *conpty.ConPty
 	shellCommand  string
 	maxBufferSize int
 }
@@ -35,7 +34,7 @@ func NewPTYWindows(c config.Config) (p PTYWindows, err error) {
 func (p PTYWindows) Read(buffer *[][]rune) {
 	go func() {
 		line := []byte{}
-		*buffer = append(*buffer, line)
+		// *buffer = append(*buffer, line)
 
 		for {
 			n, err := p.cpty.Read(line)
@@ -46,21 +45,21 @@ func (p PTYWindows) Read(buffer *[][]rune) {
 				os.Exit(0)
 			}
 
-			(*buffer)[len(buffer)-1] = line
+			// (*buffer)[len(*buffer)-1] = line
 			if n > 0 {
 				if len(*buffer) > p.maxBufferSize {
 					*buffer = (*buffer)[1:]
 				}
 
-				line = []rune{}
-				*buffer = append(*buffer, utf8.DecodeRune(line[:n]))
+				// line = []rune{}
+				*buffer = append(*buffer, []rune(string(line[:n])))
 			}
 		}
 	}()
 }
 
 func (p PTYWindows) Write(text []byte) (int, error) {
-	return r.cpty.Write(text)
+	return p.cpty.Write(text)
 }
 
 func (p PTYWindows) Close() {
