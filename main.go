@@ -32,16 +32,12 @@ func main() {
 
 	ui.NewEvent(process, window.Canvas()).Load()
 
-	buffer := [][]rune{}
-	process.Read(&buffer)
-
-	ui.NewRendering(scrollContainer, textGrid, &buffer, conf).Render()
+	reader := process.Read()
+	ui.NewRendering(scrollContainer, textGrid, reader, conf).Render()
 
 	window.SetContent(
 		container.New(layout.NewMaxLayout(), scrollContainer),
 	)
-
-	scrollContainer.ScrollToBottom()
 
 	window.ShowAndRun()
 }

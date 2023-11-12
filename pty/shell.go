@@ -18,9 +18,7 @@ func GetShell(c config.Config) (process IPTY, err error) {
 	goos := runtime.GOOS
 	if goos == "windows" {
 		return getShellWindow(c)
-	} else if goos == "darwin" {
-		return getShellLinux(c)
-	} else if goos == "linux" {
+	} else if goos == "linux" || goos == "darwin" {
 		return getShellLinux(c)
 	} else {
 		return process, ERROR_UNSUPPORTED_OS
@@ -50,8 +48,7 @@ func startWindow(c config.Config) (process IPTY) {
 
 func getShellLinux(c config.Config) (process IPTY, err error) {
 	if c.Shell == "." {
-		// c.Shell = os.Getenv("SHELL")
-		c.Shell = "bash"
+		c.Shell = os.Getenv("SHELL")
 		if c.Shell == "" {
 			return process, ERROR_SHELL_NOT_FOUND
 		}

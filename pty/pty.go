@@ -1,7 +1,9 @@
 package pty
 
+import "io"
+
 type IPTY interface {
-	Read(*[][]rune)
+	Read() io.Reader
 	Write([]byte) (int, error)
 	Close()
 }

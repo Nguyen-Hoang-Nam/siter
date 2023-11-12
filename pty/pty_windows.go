@@ -5,7 +5,7 @@ package pty
 
 import (
 	"errors"
-	"os"
+	"io"
 
 	"siter/config"
 	// "siter/utils"
@@ -14,7 +14,7 @@ import (
 )
 
 type PTYWindows struct {
-	cpty          *conpty.ConPty
+	process       *conpty.ConPty
 	shellCommand  string
 	maxBufferSize int
 }
@@ -29,46 +29,47 @@ func NewPTYWindows(c config.Config) (p PTYWindows, err error) {
 		return p, err
 	}
 
-	return PTYWindows{cpty: cpty, shellCommand: c.Shell, maxBufferSize: c.ScrollbackLines}, nil
+	return PTYWindows{process: cpty, shellCommand: c.Shell, maxBufferSize: c.ScrollbackLines}, nil
 }
 
-func (p PTYWindows) Read(buffer *[][]rune) {
-	go func() {
-		// logger, _ := utils.NewLog("siter-log.txt")
-		// defer logger.Close()
+func (p PTYWindows) Read() io.Reader {
+	return p.process
+	// go func() {
+	// 	// logger, _ := utils.NewLog("siter-log.txt")
+	// 	// defer logger.Close()
 
-		line := make([]byte, 1000)
+	// 	line := make([]byte, 1000)
 
-		for {
-			n, err := p.cpty.Read(line)
-			if err != nil {
-				os.Exit(0)
-			}
+	// 	for {
+	// 		n, err := p.cpty.Read(line)
+	// 		if err != nil {
+	// 			os.Exit(0)
+	// 		}
 
-			if n > 0 {
-				if p.shellCommand == "cmd" {
-					if len(*buffer) > p.maxBufferSize {
-						*buffer = (*buffer)[1:]
-					}
+	// 		if n > 0 {
+	// 			if p.shellCommand == "cmd" {
+	// 				if len(*buffer) > p.maxBufferSize {
+	// 					*buffer = (*buffer)[1:]
+	// 				}
 
-					// logger.Show(string(line[:n]))
+	// 				// logger.Show(string(line[:n]))
 
-					*buffer = append(*buffer, []rune(string(line[:n])))
-				} else if p.shellCommand == "powershell" {
-					*buffer = append(*buffer, []rune("Not supported powershell yet."))
-				} else {
-					*buffer = append(*buffer, []rune("Not supported powershell yet."))
-				}
+	// 				*buffer = append(*buffer, []rune(string(line[:n])))
+	// 			} else if p.shellCommand == "powershell" {
+	// 				*buffer = append(*buffer, []rune("Not supported powershell yet."))
+	// 			} else {
+	// 				*buffer = append(*buffer, []rune("Not supported powershell yet."))
+	// 			}
 
-			}
-		}
-	}()
+	// 		}
+	// 	}
+	// }()
 }
 
 func (p PTYWindows) Write(text []byte) (int, error) {
-	return p.cpty.Write(text)
+	return p.process.Write(text)
 }
 
 func (p PTYWindows) Close() {
-	p.cpty.Close()
+	p.process.Close()
 }

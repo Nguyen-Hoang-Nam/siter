@@ -4,7 +4,6 @@
 package pty
 
 import (
-	"bufio"
 	"errors"
 	"io"
 	"os"
@@ -32,36 +31,17 @@ func NewPTYUnix(c config.Config) (p PTYUnix, err error) {
 		return p, err
 	}
 
+	// if c.Shell == "sh" {
+	// 	preprocessCommand := "stty erase ^H\r"
+	// 	preprocessCommandLen = len(preprocessCommand) + 3
+	// 	process.Write([]byte(preprocessCommand))
+	// }
+
 	return PTYUnix{process: process, shellCommand: c.Shell, maxBufferSize: c.ScrollbackLines}, nil
 }
 
-func (p PTYUnix) Read(buffer *[][]rune) {
-	reader := bufio.NewReader(p.process)
-
-	go func() {
-		line := []rune{}
-		*buffer = append(*buffer, line)
-		for {
-			r, _, err := reader.ReadRune()
-			if err != nil {
-				if err == io.EOF {
-					return
-				}
-				os.Exit(0)
-			}
-
-			line = append(line, r)
-			(*buffer)[len(*buffer)-1] = line
-			if r == '\n' {
-				if len(*buffer) > p.maxBufferSize {
-					*buffer = (*buffer)[1:]
-				}
-
-				line = []rune{}
-				*buffer = append(*buffer, line)
-			}
-		}
-	}()
+func (p PTYUnix) Read() io.Reader {
+	return p.process
 }
 
 func (p PTYUnix) Write(text []byte) (int, error) {
