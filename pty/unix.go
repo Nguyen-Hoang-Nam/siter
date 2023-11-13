@@ -11,7 +11,7 @@ import (
 	"github.com/creack/pty"
 )
 
-func StartProcess(c *config.Config) (p PTYProcess, err error) {
+func startProcess(c *config.Config) (p PTYProcess, err error) {
 	os.Setenv("TERM", "dumb")
 	p, err = pty.Start(exec.Command(c.Shell.Command))
 

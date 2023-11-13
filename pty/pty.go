@@ -20,7 +20,7 @@ func Start(c *config.Config) (process PTYProcess, err error) {
 		return process, ErrUnsupportedOS
 	}
 
-	process, err = StartProcess(c)
+	process, err = startProcess(c)
 	if err != nil {
 		return nil, err
 	}
