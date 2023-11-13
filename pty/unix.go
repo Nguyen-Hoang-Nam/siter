@@ -13,13 +13,11 @@ import (
 
 func startProcess(c *config.Config) (p PTYProcess, err error) {
 	os.Setenv("TERM", "dumb")
-	p, err = pty.Start(exec.Command(c.Shell.Command))
 
-	// if c.Shell == "sh" {
-	// 	preprocessCommand := "stty erase ^H\r"
-	// 	preprocessCommandLen = len(preprocessCommand) + 3
-	// 	process.Write([]byte(preprocessCommand))
-	// }
+	command := c.Shell.Command
+	args := []string{"-c", "stty erase ^H; " + command}
+
+	p, err = pty.Start(exec.Command(command, args...))
 
 	return
 }
