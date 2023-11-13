@@ -24,23 +24,23 @@ type Rendering struct {
 
 func NewRendering(scrollContainer *container.Scroll, textGrid *widget.TextGrid, reader io.Reader, config *config.Config) *Rendering {
 	terminalColor := map[string]color.RGBA{
-		"[0m":     config.ForegroundColor,
-		"[0;30m":  config.Color0,
-		"[0;31m":  config.Color1,
-		"[0;32m":  config.Color2,
-		"[0;33m":  config.Color3,
-		"[0;34m":  config.Color4,
-		"[0;35m":  config.Color5,
-		"[0;36m":  config.Color6,
-		"[0;37m":  config.Color7,
-		"[01;30m": config.Color8,
-		"[01;31m": config.Color9,
-		"[01;32m": config.Color10,
-		"[01;33m": config.Color11,
-		"[01;34m": config.Color12,
-		"[01;35m": config.Color13,
-		"[01;36m": config.Color14,
-		"[01;37m": config.Color15,
+		"[0m":     config.ForegroundColor.RGBA,
+		"[0;30m":  config.Color0.RGBA,
+		"[0;31m":  config.Color1.RGBA,
+		"[0;32m":  config.Color2.RGBA,
+		"[0;33m":  config.Color3.RGBA,
+		"[0;34m":  config.Color4.RGBA,
+		"[0;35m":  config.Color5.RGBA,
+		"[0;36m":  config.Color6.RGBA,
+		"[0;37m":  config.Color7.RGBA,
+		"[01;30m": config.Color8.RGBA,
+		"[01;31m": config.Color9.RGBA,
+		"[01;32m": config.Color10.RGBA,
+		"[01;33m": config.Color11.RGBA,
+		"[01;34m": config.Color12.RGBA,
+		"[01;35m": config.Color13.RGBA,
+		"[01;36m": config.Color14.RGBA,
+		"[01;37m": config.Color15.RGBA,
 	}
 
 	return &Rendering{config: config, textGrid: textGrid, reader: reader, scrollContainer: scrollContainer, termianlColor: terminalColor}
@@ -295,26 +295,26 @@ func (r *Rendering) getSGRStyle(text string) widget.CustomTextGridStyle {
 	}
 
 	colors := []color.RGBA{
-		r.config.Color0,
-		r.config.Color1,
-		r.config.Color2,
-		r.config.Color3,
-		r.config.Color4,
-		r.config.Color5,
-		r.config.Color6,
-		r.config.Color7,
-		r.config.Color8,
-		r.config.Color9,
-		r.config.Color10,
-		r.config.Color11,
-		r.config.Color12,
-		r.config.Color13,
-		r.config.Color14,
-		r.config.Color15,
+		r.config.Color0.RGBA,
+		r.config.Color1.RGBA,
+		r.config.Color2.RGBA,
+		r.config.Color3.RGBA,
+		r.config.Color4.RGBA,
+		r.config.Color5.RGBA,
+		r.config.Color6.RGBA,
+		r.config.Color7.RGBA,
+		r.config.Color8.RGBA,
+		r.config.Color9.RGBA,
+		r.config.Color10.RGBA,
+		r.config.Color11.RGBA,
+		r.config.Color12.RGBA,
+		r.config.Color13.RGBA,
+		r.config.Color14.RGBA,
+		r.config.Color15.RGBA,
 	}
 
-	fgColor := r.config.ForegroundColor
-	bgColor := r.config.BackgroundColor
+	fgColor := r.config.ForegroundColor.RGBA
+	bgColor := r.config.BackgroundColor.RGBA
 
 	if isFG8 {
 		if fg != -1 {

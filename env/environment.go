@@ -3,29 +3,19 @@ package env
 import (
 	"os"
 	"path"
-	"runtime"
 )
 
-func getXdgConfigHome() string {
-	if value := os.Getenv(XDG_CONFIG_HOME); value != "" {
-		return value
+const CONFIG_DIRECTORY = "SITER_CONFIG_DIRECTORY"
+
+func ConfigDir() (string, error) {
+	if value := os.Getenv(CONFIG_DIRECTORY); value != "" {
+		return value, nil
 	}
 
-	return "$HOME/.local/.config"
-}
-
-func getUserProfile() string {
-	return os.Getenv(WINDOW_USER_PROFILE)
-}
-
-func GetSiterConfigDirectory() string {
-	if value := os.Getenv(SITER_CONFIG_DIRECTORY); value != "" {
-		return value
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
 	}
 
-	if runtime.GOOS == "windows" {
-		return path.Join(getUserProfile(), "siter")
-	} else {
-		return path.Join(getXdgConfigHome(), "siter")
-	}
+	return path.Join(configDir, "siter"), nil
 }

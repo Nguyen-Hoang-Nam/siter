@@ -1,4 +1,4 @@
-# Siter - Simple Terminal
+# Siter - Simple Terminal Emulator
 
 Base on [here](https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-lines-of-go/)
 
@@ -10,7 +10,20 @@ Base on [here](https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-li
 
 ## Configuration
 
-Not defined yet.
+If the `SITER_CONFIG_DIRECTORY` environment variable is not defined, the configuration directory will 
+be set to `path.Join(os.UserConfigDir, "siter")`. Siter reads configuration from the `config.toml` file.
+
+```toml
+open_url_with = "brave"
+foreground_color = "#FFFFFF"
+background_color = "#000000"
+```
+
+## Run
+
+```
+go run main.go
+```
 
 ## Build
 
@@ -28,17 +41,12 @@ fyne-cross windows -arch=amd64,386 -icon "icon/icon-32x32.png"
 
 ## Platform
 
-- [ ] Linux - Work in progress
-- [ ] Windows CMD - Work in progress
-- [ ] Windows Powershell - Not supported yet
-- [ ] Windows WSL - Not supported yet
-- [ ] MacOS - Not supported yet
-
-## TODO
-
-- [ ] Render color correctly
-- [ ] Add graphic protocol
-- [ ] Add tab manager
+- [ ] Shell - WIP
+- [ ] Bash - WIP
+- [ ] ZSH - WIP
+- [ ] CMD - WIP
+- [ ] Powershell - Not supported yet
+- [ ] WSL - Not supported yet
 
 ## Contributing
 

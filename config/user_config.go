@@ -8,15 +8,15 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const CONFIG_FILE_NAME = "siter.toml"
+const CONFIG_FILE_NAME = "config.toml"
 
-func parseFile() (c *Config, err error) {
-	configDir := env.GetSiterConfigDirectory()
-	configPath := path.Join(configDir, CONFIG_FILE_NAME)
-
-	if _, err = os.Stat(configDir); os.IsNotExist(err) {
+func userConfig(c *Config) (err error) {
+	configDir, err := env.ConfigDir()
+	if err != nil {
 		return
 	}
+
+	configPath := path.Join(configDir, CONFIG_FILE_NAME)
 
 	if _, err = os.Stat(configPath); os.IsNotExist(err) {
 		return
@@ -32,5 +32,5 @@ func parseFile() (c *Config, err error) {
 		return
 	}
 
-	return c, nil
+	return nil
 }
