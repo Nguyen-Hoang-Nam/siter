@@ -9,8 +9,8 @@ import (
 	"github.com/UserExistsError/conpty"
 )
 
-func StartProcess(c *config.Config) (p PTYWindows, err error) {
-	p, err := conpty.Start(c.Shell.Command)
+func StartProcess(c *config.Config) (p PTYProcess, err error) {
+	p, err = conpty.Start(c.Shell.Command)
 	if err != nil {
 		return p, err
 	}
