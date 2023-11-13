@@ -7,36 +7,37 @@ import (
 	"fyne.io/fyne/v2"
 )
 
-type Event struct {
-	process pty.PTYProcess
+func controlCharacters() map[fyne.KeyName][]byte {
+	var newline []byte
+	if runtime.GOOS == "windows" {
+		newline = []byte("\r\n")
+	} else {
+		newline = []byte{'\r'}
+	}
+
+	return map[fyne.KeyName][]byte{
+		fyne.KeyBackspace: {'\x08'},
+		fyne.KeyTab:       {'\x09'},
+		fyne.KeyEnter:     newline,
+		fyne.KeyReturn:    newline,
+		fyne.KeyEscape:    {'\x1b'},
+	}
 }
 
 func LoadEvent(canvas fyne.Canvas, process pty.PTYProcess) {
-	event := Event{process: process}
+	cc := controlCharacters()
 
-	canvas.AddShortcut(&fyne.ShortcutCopy{}, event.onCtrlC)
-	canvas.SetOnTypedKey(event.onTypedKey)
-	canvas.SetOnTypedRune(event.onTypedRune)
-}
+	canvas.AddShortcut(&fyne.ShortcutCopy{}, func(_ fyne.Shortcut) {
+		process.Write([]byte{'\x03'})
+	})
 
-func (event *Event) onTypedKey(e *fyne.KeyEvent) {
-	if e.Name == fyne.KeyEnter || e.Name == fyne.KeyReturn {
-		if runtime.GOOS == "windows" {
-			_, _ = event.process.Write([]byte("\r\n"))
-		} else {
-			_, _ = event.process.Write([]byte{'\r'})
+	canvas.SetOnTypedKey(func(e *fyne.KeyEvent) {
+		if text, ok := cc[e.Name]; ok {
+			process.Write(text)
 		}
-	}
+	})
 
-	if e.Name == fyne.KeyBackspace {
-		_, _ = event.process.Write([]byte{'\b'})
-	}
-}
-
-func (event *Event) onTypedRune(r rune) {
-	_, _ = event.process.Write([]byte(string(r)))
-}
-
-func (event *Event) onCtrlC(_ fyne.Shortcut) {
-	_, _ = event.process.Write([]byte("\x03"))
+	canvas.SetOnTypedRune(func(r rune) {
+		process.Write([]byte(string(r)))
+	})
 }

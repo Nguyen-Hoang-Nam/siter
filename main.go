@@ -15,22 +15,21 @@ import (
 )
 
 func main() {
-
-	window := app.New().NewWindow("Siter")
+	w := app.New().NewWindow("Siter")
 	textGrid := widget.NewTextGrid()
 	scrollContainer := container.NewVScroll(textGrid)
 
-	conf := config.Load()
-	process, err := pty.Start(conf)
+	c := config.Load()
+	p, err := pty.Start(c)
 	if err != nil {
 		fyne.LogError("Failed to open pty", err)
 		os.Exit(1)
 	}
-	defer process.Close()
+	defer p.Close()
 
-	ui.LoadEvent(window.Canvas(), process)
-	ui.Render(scrollContainer, textGrid, process, conf)
+	ui.LoadEvent(w.Canvas(), p)
+	ui.Render(scrollContainer, textGrid, p, c)
 
-	window.SetContent(container.New(layout.NewMaxLayout(), scrollContainer))
-	window.ShowAndRun()
+	w.SetContent(container.New(layout.NewMaxLayout(), scrollContainer))
+	w.ShowAndRun()
 }

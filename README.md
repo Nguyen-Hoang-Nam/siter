@@ -35,8 +35,8 @@ Requirements:
 Check how to build and install cross-compile [here](https://developer.fyne.io/started/cross-compiling)
 
 ```
-fyne-cross linux -arch=* -icon "icon/icon-32x32.png"
-fyne-cross windows -arch=amd64,386 -icon "icon/icon-32x32.png"
+fyne-cross linux -arch=* -icon "icon/32x32.png"
+fyne-cross windows -arch=amd64,386 -icon "icon/32x32.png" -app-id dev.siter
 ```
 
 ## Platform
