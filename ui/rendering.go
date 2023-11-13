@@ -118,12 +118,12 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 			if isNewOutput {
 				isNewOutput = false
 
+				textGrid.Refresh()
+
 				if isNewLine {
 					isNewLine = false
 					scrollContainer.ScrollToBottom()
 				}
-
-				textGrid.Refresh()
 			}
 		}
 	}()

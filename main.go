@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"siter/config"
+	"siter/events"
 	"siter/pty"
 	"siter/ui"
 
@@ -27,7 +28,8 @@ func main() {
 	}
 	defer p.Close()
 
-	ui.LoadEvent(w.Canvas(), p)
+	events.Load(w.Canvas(), p)
+
 	ui.Render(scrollContainer, textGrid, p, c)
 
 	w.SetContent(container.New(layout.NewMaxLayout(), scrollContainer))
