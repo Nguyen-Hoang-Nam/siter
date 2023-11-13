@@ -1,10 +1,5 @@
 package config
 
-import (
-	"image/color"
-	"siter/utils"
-)
-
 type CursorShapeType string
 
 const (
@@ -23,16 +18,6 @@ const (
 	URL_STYLE_DOTTED   UrlStyleType = "DOTTED"
 	URL_STYLE_DASHED   UrlStyleType = "DASHED"
 )
-
-type parsingColor struct{ color.RGBA }
-
-func (c *parsingColor) UnmarshalText(text []byte) error {
-	var err error
-
-	c.RGBA, err = utils.ParseColor(string(text))
-
-	return err
-}
 
 type Config struct {
 	FontFamily        string          `toml:"font_family"`
@@ -70,11 +55,12 @@ type Config struct {
 	Color13           parsingColor    `toml:"color13"`
 	Color14           parsingColor    `toml:"color14"`
 	Color15           parsingColor    `toml:"color15"`
-	Shell             string          `toml:"shell"`
+	Shell             parsingShell    `toml:"shell"`
 }
 
 func Load() *Config {
-	userConfig(&defaultConfig)
+	c := defaultConfig()
+	userConfig(&c)
 
-	return &defaultConfig
+	return &c
 }

@@ -8,21 +8,15 @@ import (
 )
 
 type Event struct {
-	process pty.IPTY
-	canvas  fyne.Canvas
+	process pty.PTYProcess
 }
 
-func NewEvent(process pty.IPTY, canvas fyne.Canvas) *Event {
-	return &Event{
-		process: process,
-		canvas:  canvas,
-	}
-}
+func LoadEvent(canvas fyne.Canvas, process pty.PTYProcess) {
+	event := Event{process: process}
 
-func (event *Event) Load() {
-	event.canvas.AddShortcut(&fyne.ShortcutCopy{}, event.onCtrlC)
-	event.canvas.SetOnTypedKey(event.onTypedKey)
-	event.canvas.SetOnTypedRune(event.onTypedRune)
+	canvas.AddShortcut(&fyne.ShortcutCopy{}, event.onCtrlC)
+	canvas.SetOnTypedKey(event.onTypedKey)
+	canvas.SetOnTypedRune(event.onTypedRune)
 }
 
 func (event *Event) onTypedKey(e *fyne.KeyEvent) {

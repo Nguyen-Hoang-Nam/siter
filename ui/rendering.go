@@ -15,41 +15,15 @@ import (
 )
 
 type Rendering struct {
-	config          *config.Config
-	textGrid        *widget.TextGrid
-	scrollContainer *container.Scroll
-	termianlColor   map[string]color.RGBA
-	reader          io.Reader
+	config *config.Config
 }
 
-func NewRendering(scrollContainer *container.Scroll, textGrid *widget.TextGrid, reader io.Reader, config *config.Config) *Rendering {
-	terminalColor := map[string]color.RGBA{
-		"[0m":     config.ForegroundColor.RGBA,
-		"[0;30m":  config.Color0.RGBA,
-		"[0;31m":  config.Color1.RGBA,
-		"[0;32m":  config.Color2.RGBA,
-		"[0;33m":  config.Color3.RGBA,
-		"[0;34m":  config.Color4.RGBA,
-		"[0;35m":  config.Color5.RGBA,
-		"[0;36m":  config.Color6.RGBA,
-		"[0;37m":  config.Color7.RGBA,
-		"[01;30m": config.Color8.RGBA,
-		"[01;31m": config.Color9.RGBA,
-		"[01;32m": config.Color10.RGBA,
-		"[01;33m": config.Color11.RGBA,
-		"[01;34m": config.Color12.RGBA,
-		"[01;35m": config.Color13.RGBA,
-		"[01;36m": config.Color14.RGBA,
-		"[01;37m": config.Color15.RGBA,
-	}
+func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, process io.Reader, config *config.Config) {
+	r := &Rendering{config}
 
-	return &Rendering{config: config, textGrid: textGrid, reader: reader, scrollContainer: scrollContainer, termianlColor: terminalColor}
-}
-
-func (r *Rendering) Render() {
 	rows := make([]widget.TextGridRow, 1)
 	cells := make([]widget.TextGridCell, 0)
-	r.textGrid.Rows = rows
+	textGrid.Rows = rows
 
 	rows[0] = widget.TextGridRow{Cells: cells}
 	rowIndex := 0
@@ -58,13 +32,13 @@ func (r *Rendering) Render() {
 	isNewLine := false
 
 	go func() {
-		reader := bufio.NewReader(r.reader)
+		reader := bufio.NewReader(process)
 
 		isCr := false
 		isEsc := false
 		isECMA := false
 		preBuffer := ""
-		style := widget.CustomTextGridStyle{FGColor: r.termianlColor["[0m"]}
+		style := widget.CustomTextGridStyle{FGColor: r.config.ForegroundColor.RGBA}
 
 		for {
 			c, _, err := reader.ReadRune()
@@ -123,7 +97,7 @@ func (r *Rendering) Render() {
 			if c == '\n' {
 				cells = make([]widget.TextGridCell, 0)
 				rows = append(rows, widget.TextGridRow{Cells: cells})
-				r.textGrid.Rows = rows
+				textGrid.Rows = rows
 				rowIndex++
 
 				if !isNewLine {
@@ -146,10 +120,10 @@ func (r *Rendering) Render() {
 
 				if isNewLine {
 					isNewLine = false
-					r.scrollContainer.ScrollToBottom()
+					scrollContainer.ScrollToBottom()
 				}
 
-				r.textGrid.Refresh()
+				textGrid.Refresh()
 			}
 		}
 	}()
@@ -383,11 +357,3 @@ func (r *Rendering) getSGRStyle(text string) widget.CustomTextGridStyle {
 
 // 	}
 // }
-
-func (r *Rendering) Set(text string) {
-	r.textGrid.SetText(text)
-}
-
-func (r *Rendering) Clear() {
-	r.Set("")
-}
