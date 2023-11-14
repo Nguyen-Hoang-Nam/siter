@@ -44,5 +44,16 @@ func defaultConfig() Config {
 		Color13:           parsingColor{color.RGBA{R: 192, G: 97, B: 203, A: 255}},
 		Color14:           parsingColor{color.RGBA{R: 51, G: 199, B: 222, A: 255}},
 		Shell:             defaultShell,
+		Map: map[string]string{
+			"ctrl+c": "write \x03",
+			"ctrl+d": "write \x04",
+			"ctrl+g": "write \x07",
+			"ctrl+h": "write \x08",
+			"ctrl+i": "write \x09",
+			"ctrl+j": "write \x0a",
+			"ctrl+k": "write \x0b",
+			"ctrl+l": "write \x0c",
+			"ctrl+m": "write \x0d",
+		},
 	}
 }

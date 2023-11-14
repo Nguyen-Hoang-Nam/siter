@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"siter/config"
-	"siter/events"
+	"siter/mapping"
 	"siter/pty"
 	"siter/ui"
 
@@ -28,7 +28,7 @@ func main() {
 	}
 	defer p.Close()
 
-	events.Load(w.Canvas(), p)
+	mapping.Load(w.Canvas(), p, c)
 
 	ui.Render(scrollContainer, textGrid, p, c)
 
