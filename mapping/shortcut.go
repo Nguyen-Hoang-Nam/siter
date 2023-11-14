@@ -44,6 +44,10 @@ func (m *mappingStruct) functions() map[string]func([]string) func(fyne.Shortcut
 }
 
 func parseShortcut(text string) (fyne.Shortcut, error) {
+	if text == "ctrl+c" {
+		return &fyne.ShortcutCopy{}, nil
+	}
+
 	keys := strings.Split(text, "+")
 	if len(keys) != 2 {
 		return nil, errors.New("shortcut much be 2 keys")
