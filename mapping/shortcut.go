@@ -33,6 +33,13 @@ var specialKeys = map[string]fyne.KeyName{
 	"SPACE":     fyne.KeySpace,
 }
 
+var overrideShortcut = map[string]fyne.Shortcut{
+	"ctrl+c": &fyne.ShortcutCopy{},
+	"ctrl+v": &fyne.ShortcutPaste{},
+	"ctrl+x": &fyne.ShortcutCut{},
+	"ctrl+a": &fyne.ShortcutSelectAll{},
+}
+
 func (m *mappingStruct) functions() map[string]func([]string) func(fyne.Shortcut) {
 	return map[string]func([]string) func(fyne.Shortcut){
 		"write": func(args []string) func(fyne.Shortcut) {
@@ -44,8 +51,8 @@ func (m *mappingStruct) functions() map[string]func([]string) func(fyne.Shortcut
 }
 
 func parseShortcut(text string) (fyne.Shortcut, error) {
-	if text == "ctrl+c" {
-		return &fyne.ShortcutCopy{}, nil
+	if val, ok := overrideShortcut[text]; ok {
+		return val, nil
 	}
 
 	keys := strings.Split(text, "+")
