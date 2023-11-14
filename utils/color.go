@@ -10,6 +10,10 @@ var (
 )
 
 func ParseColor(colorStr string) (c color.RGBA, err error) {
+	if colorStr == "" {
+		return c, ERROR_INVALID_COLOR_FORMAT
+	}
+
 	if colorStr[0] == '#' {
 		return parseHexColor(colorStr)
 	}
