@@ -112,8 +112,9 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 	}()
 
 	go func() {
+		deplay := time.Duration(r.config.RepaintDeplay) * time.Millisecond
 		for {
-			time.Sleep(time.Duration(r.config.RepaintDeplay) * time.Millisecond)
+			time.Sleep(deplay)
 
 			if isNewOutput {
 				isNewOutput = false
