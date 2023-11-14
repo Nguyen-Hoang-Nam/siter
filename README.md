@@ -17,6 +17,9 @@ be set to `path.Join(os.UserConfigDir, "siter")`. Siter reads configuration from
 open_url_with = "brave"
 foreground_color = "#FFFFFF"
 background_color = "#000000"
+
+[map]
+"ctrl+t" = "write hello"
 ```
 
 ## Run
