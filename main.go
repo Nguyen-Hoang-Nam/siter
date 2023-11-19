@@ -6,6 +6,7 @@ import (
 	"siter/config"
 	"siter/mapping"
 	"siter/pty"
+	"siter/rendering"
 	"siter/ui"
 
 	"fyne.io/fyne/v2"
@@ -16,7 +17,8 @@ import (
 )
 
 func main() {
-	w := app.New().NewWindow("Siter")
+	a := app.New()
+	w := a.NewWindow("Siter")
 	textGrid := widget.NewTextGrid()
 	scrollContainer := container.NewVScroll(textGrid)
 
@@ -30,7 +32,9 @@ func main() {
 
 	mapping.Load(w.Canvas(), p, c)
 
-	ui.Render(scrollContainer, textGrid, p, c)
+	rendering.Render(scrollContainer, textGrid, p, c)
+
+	a.Settings().SetTheme(ui.NewTheme(c))
 
 	w.SetContent(container.New(layout.NewMaxLayout(), scrollContainer))
 	w.ShowAndRun()

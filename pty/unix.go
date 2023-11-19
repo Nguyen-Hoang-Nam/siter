@@ -12,7 +12,7 @@ import (
 )
 
 func startProcess(c *config.Config) (p PTYProcess, err error) {
-	os.Setenv("TERM", "dumb")
+	os.Setenv("TERM", "xterm-256color")
 
 	command := c.Shell.Command
 	args := []string{"-c", "stty erase ^H; " + command}
