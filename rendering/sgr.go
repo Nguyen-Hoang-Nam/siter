@@ -2,9 +2,19 @@ package rendering
 
 import (
 	"image/color"
+	"siter/termcolor"
 	"siter/ui"
 	"strconv"
 	"strings"
+)
+
+type SGRColorMode int
+
+const (
+	Color16Mode SGRColorMode = iota
+	Color256Mode
+	ColorRGBMode
+	ColorRGBAMode
 )
 
 func (r *Rendering) handleSGR(rs []rune) {
@@ -25,21 +35,24 @@ func (r *Rendering) handleSGR(rs []rune) {
 	isBgBoldColor := false
 	isItalic := false
 	underline := ui.NoUnderline
-	fgMode := 0
-	bgMode := 0
-	underlineColorMode := 0
+	fgMode := Color16Mode
+	bgMode := Color16Mode
+	underlineColorMode := Color16Mode
 	fg := -1
 	bg := -1
 	underlineColor := -1
 	fgR := -1
 	fgG := -1
 	fgB := -1
+	fgA := -1
 	bgR := -1
 	bgG := -1
 	bgB := -1
+	bgA := -1
 	underlineColorR := -1
 	underlineColorG := -1
 	underlineColorB := -1
+	underlineColorA := -1
 	fgColor := r.termColor.Foreground
 	bgColor := r.termColor.Background
 
@@ -51,10 +64,12 @@ func (r *Rendering) handleSGR(rs []rune) {
 			isBgBoldColor = false
 			isItalic = false
 			underline = ui.NoUnderline
-			fgMode = 0
-			bgMode = 0
+			fgMode = Color16Mode
+			bgMode = Color16Mode
+			underlineColorMode = Color16Mode
 			fg = -1
 			bg = -1
+			underlineColor = -1
 		} else if i == 1 {
 			isFgBoldColor = true
 		} else if i == 3 {
@@ -85,14 +100,14 @@ func (r *Rendering) handleSGR(rs []rune) {
 			fgMode = 0
 			fg = i - 30
 		} else if i == 38 {
-			index, fgMode, fg, fgR, fgG, fgB = parseColor(index, params)
+			index, fgMode, fg, fgR, fgG, fgB, fgA = parseColor(index, params)
 		} else if i > 39 && i < 48 {
 			bgMode = 0
 			bg = i - 40
 		} else if i == 48 {
-			index, bgMode, bg, bgR, bgG, bgB = parseColor(index, params)
+			index, bgMode, bg, bgR, bgG, bgB, bgA = parseColor(index, params)
 		} else if i == 58 {
-			index, underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB = parseColor(index, params)
+			index, underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA = parseColor(index, params)
 		} else if i > 89 && i < 98 {
 			fgMode = 0
 			fg = i - 90
@@ -104,38 +119,30 @@ func (r *Rendering) handleSGR(rs []rune) {
 		}
 	}
 
-	if fgMode == 0 {
+	if fgMode == Color16Mode {
 		if fg != -1 {
 			if isFgBoldColor {
 				fg += 8
 			}
 			fgColor = r.termColor.Color16[fg]
 		}
-	} else if fgMode == 1 {
-		fgColor = r.termColor.Color256[fg]
-	} else if fgMode == 2 {
-		fgColor = color.RGBA{R: uint8(fgR), G: uint8(fgG), B: uint8(fgB), A: 255}
+	} else {
+		fgColor = generateColor(fgMode, fg, fgR, fgG, fgB, fgA, r.termColor)
 	}
 
-	if bgMode == 0 {
+	if bgMode == Color16Mode {
 		if bg != -1 {
 			if isBgBoldColor {
 				bg += 8
 			}
 			bgColor = r.termColor.Color16[bg]
 		}
-	} else if bgMode == 1 {
-		bgColor = r.termColor.Color16[bg]
-	} else if bgMode == 2 {
-		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB), A: 255}
+	} else {
+		bgColor = generateColor(bgMode, bg, bgR, bgG, bgB, bgA, r.termColor)
 	}
 
 	var underlineColorVal color.Color = color.Transparent
-	if underlineColorMode == 1 {
-		underlineColorVal = r.termColor.Color16[underlineColor]
-	} else if underlineColorMode == 2 {
-		underlineColorVal = color.RGBA{R: uint8(underlineColorR), G: uint8(underlineColorG), B: uint8(underlineColorB)}
-	}
+	underlineColorVal = generateColor(underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA, r.termColor)
 
 	r.nextStyle = &ui.TextGridStyle{
 		FGColor:        fgColor,
@@ -156,23 +163,23 @@ func parseInt(s string) int {
 	return n
 }
 
-func parseColor(index int, params []string) (ind int, mode int, c256 int, r int, g int, b int) {
+func parseColor(index int, params []string) (ind int, mode SGRColorMode, c256 int, r int, g int, b int, a int) {
 	index++
 	i, err := strconv.Atoi(params[index])
 	if err != nil {
 		panic(err)
 	}
 
-	if i == 5 {
+	if i == 5 { // 256
 		if index+1 >= len(params) {
 			panic("wrong format")
 		}
 
-		mode = 1
+		mode = Color256Mode
 		index++
 		c256 = parseInt(params[index])
-	} else if i == 2 {
-		mode = 2
+	} else if i == 2 { // RGB
+		mode = ColorRGBMode
 		if index+3 >= len(params) {
 			panic("wrong format")
 		}
@@ -194,9 +201,47 @@ func parseColor(index int, params []string) (ind int, mode int, c256 int, r int,
 
 		index++
 		b = parseInt(params[index])
+	} else if i == 6 { // RGBA
+		mode = ColorRGBAMode
+		if index+4 >= len(params) {
+			panic("wrong format")
+		}
+
+		index++
+		// Colorspace ID
+		if params[index] == "" {
+			if index+4 >= len(params) {
+				panic("wrong format")
+			}
+
+			index++
+		}
+
+		r = parseInt(params[index])
+
+		index++
+		g = parseInt(params[index])
+
+		index++
+		b = parseInt(params[index])
+
+		index++
+		a = parseInt(params[index])
 	}
 
 	ind = index
+
+	return
+}
+
+func generateColor(mode SGRColorMode, c256 int, r int, g int, b int, a int, termColor termcolor.TermColor) (c color.RGBA) {
+	if mode == Color256Mode {
+		c = termColor.Color16[c256]
+	} else if mode == ColorRGBMode {
+		c = color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 255}
+	} else if mode == ColorRGBAMode {
+		c = color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)}
+	}
 
 	return
 }
