@@ -18,7 +18,12 @@ func (r *Rendering) handleControlFunction(functionName string, rs []rune) {
 }
 
 func (r *Rendering) handleLR() {
-	r.cells = append(r.cells, widget.TextGridCell{Rune: '\n', Style: &r.nextStyle})
+	r.cells = append(r.cells, widget.TextGridCell{
+		Rune: '\n',
+		Style: &widget.CustomTextGridStyle{
+			FGColor: r.nextFGColor,
+			BGColor: r.nextBGColor,
+		}})
 	r.cells = make([]widget.TextGridCell, 0)
 	r.rows = append(r.rows, widget.TextGridRow{Cells: r.cells})
 	r.textGrid.Rows = r.rows
@@ -160,7 +165,8 @@ func (r *Rendering) handleSGR(rs []rune) {
 		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB)}
 	}
 
-	r.nextStyle = widget.CustomTextGridStyle{FGColor: fgColor, BGColor: bgColor}
+	r.nextFGColor = fgColor
+	r.nextBGColor = bgColor
 }
 
 func parseInt(s string) int {

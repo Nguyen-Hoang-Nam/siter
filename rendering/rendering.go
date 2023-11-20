@@ -2,6 +2,7 @@ package rendering
 
 import (
 	"bufio"
+	"image/color"
 	"io"
 	"os"
 	"siter/config"
@@ -14,24 +15,26 @@ import (
 )
 
 type Rendering struct {
-	termColor termcolor.TermColor
-	rows      []widget.TextGridRow
-	cells     []widget.TextGridCell
-	rowIndex  int
-	textGrid  *widget.TextGrid
-	isNewLine bool
-	nextStyle widget.CustomTextGridStyle
+	termColor   termcolor.TermColor
+	rows        []widget.TextGridRow
+	cells       []widget.TextGridCell
+	rowIndex    int
+	textGrid    *widget.TextGrid
+	isNewLine   bool
+	nextFGColor color.RGBA
+	nextBGColor color.RGBA
 }
 
 func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, process io.Reader, config *config.Config) {
 	rendering := &Rendering{
-		termColor: termcolor.New(config),
-		rows:      make([]widget.TextGridRow, 1),
-		cells:     make([]widget.TextGridCell, 0),
-		rowIndex:  0,
-		textGrid:  textGrid,
-		isNewLine: false,
-		nextStyle: widget.CustomTextGridStyle{FGColor: config.ForegroundColor.RGBA},
+		termColor:   termcolor.New(config),
+		rows:        make([]widget.TextGridRow, 1),
+		cells:       make([]widget.TextGridCell, 0),
+		rowIndex:    0,
+		textGrid:    textGrid,
+		isNewLine:   false,
+		nextFGColor: config.ForegroundColor.RGBA,
+		nextBGColor: config.BackgroundColor.RGBA,
 	}
 
 	rendering.textGrid.Rows = rendering.rows
@@ -50,10 +53,15 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 				functionName, rs := getControlFunction([]rune{r}, reader)
 				rendering.handleControlFunction(functionName, rs)
 			} else {
-				rendering.cells = append(rendering.cells, widget.TextGridCell{Rune: r, Style: &rendering.nextStyle})
+				rendering.cells = append(rendering.cells, widget.TextGridCell{
+					Rune: r,
+					Style: &widget.CustomTextGridStyle{
+						FGColor: rendering.nextFGColor,
+						BGColor: rendering.nextBGColor,
+					},
+				})
 
 				rendering.rows[rendering.rowIndex] = widget.TextGridRow{Cells: rendering.cells}
-				rendering.textGrid.SetStyle(rendering.rowIndex, len(rendering.cells)-1, &rendering.nextStyle)
 
 				if !isNewOutput {
 					isNewOutput = true
@@ -111,38 +119,3 @@ func getControlFunction(rs []rune, reader *bufio.Reader) (string, []rune) {
 		}
 	}
 }
-
-// func (r *Rendering) style(text string) {
-// 	row := 0
-// 	col := 0
-// 	isNewColor := false
-// 	asciiColor := []byte("")
-// 	currentColor := r.termianlColor["[0"]
-
-// 	for i := range text {
-// 		if text[i] == 27 {
-// 			isNewColor = true
-// 		} else {
-// 			if isNewColor && text[i] == 'm' {
-// 				currentColor = r.termianlColor[string(asciiColor)]
-// 				asciiColor = []byte("")
-
-// 				isNewColor = false
-// 			} else if isNewColor {
-// 				asciiColor = append(asciiColor, text[i])
-// 			}
-// 		}
-
-// 		r.textGrid.SetStyle(row, col, &widget.CustomTextGridStyle{FGColor: currentColor})
-
-// 		if !isNewColor {
-// 			if text[i] == '\n' {
-// 				row++
-// 				col = 0
-// 			} else {
-// 				col++
-// 			}
-// 		}
-
-// 	}
-// }
