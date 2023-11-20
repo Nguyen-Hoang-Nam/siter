@@ -85,96 +85,14 @@ func (r *Rendering) handleSGR(rs []rune) {
 			fgMode = 0
 			fg = i - 30
 		} else if i == 38 {
-			index++
-			i = parseInt(params[index])
-
-			if i == 5 {
-				fgMode = 1
-				if index+1 < len(params) {
-					index++
-					fg = parseInt(params[index])
-				} else {
-					panic("wrong format")
-				}
-			} else if i == 2 {
-				fgMode = 2
-				fg = -1
-				if index+3 < len(params) {
-					index++
-					fgR = parseInt(params[index])
-
-					index++
-					fgG = parseInt(params[index])
-
-					index++
-					fgB = parseInt(params[index])
-				} else {
-					panic("wrong format")
-				}
-			}
+			index, fgMode, fg, fgR, fgG, fgB = parseColor(index, params)
 		} else if i > 39 && i < 48 {
 			bgMode = 0
 			bg = i - 40
 		} else if i == 48 {
-			index++
-			i, err := strconv.Atoi(params[index])
-			if err != nil {
-				panic(err)
-			}
-
-			if i == 5 {
-				bgMode = 1
-				if index+1 < len(params) {
-					index++
-					bg = parseInt(params[index])
-				} else {
-					panic("wrong format")
-				}
-			} else if i == 2 {
-				bgMode = 2
-				if index+3 < len(params) {
-					index++
-					bgR = parseInt(params[index])
-
-					index++
-					bgG = parseInt(params[index])
-
-					index++
-					bgB = parseInt(params[index])
-				} else {
-					panic("wrong format")
-				}
-			}
+			index, bgMode, bg, bgR, bgG, bgB = parseColor(index, params)
 		} else if i == 58 {
-			index++
-			i, err := strconv.Atoi(params[index])
-			if err != nil {
-				panic(err)
-			}
-
-			if i == 5 {
-				underlineColorMode = 1
-				if index+1 < len(params) {
-					index++
-					underlineColor = parseInt(params[index])
-				} else {
-					panic("wrong format")
-				}
-			} else if i == 2 {
-				underlineColorMode = 2
-				if index+3 < len(params) {
-					index++
-					underlineColorR = parseInt(params[index])
-
-					index++
-					underlineColorG = parseInt(params[index])
-
-					index++
-					underlineColorB = parseInt(params[index])
-				} else {
-					panic("wrong format")
-				}
-			}
+			index, underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB = parseColor(index, params)
 		} else if i > 89 && i < 98 {
 			fgMode = 0
 			fg = i - 90
@@ -196,7 +114,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 	} else if fgMode == 1 {
 		fgColor = r.termColor.Color256[fg]
 	} else if fgMode == 2 {
-		fgColor = color.RGBA{R: uint8(fgR), G: uint8(fgG), B: uint8(fgB)}
+		fgColor = color.RGBA{R: uint8(fgR), G: uint8(fgG), B: uint8(fgB), A: 255}
 	}
 
 	if bgMode == 0 {
@@ -209,7 +127,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 	} else if bgMode == 1 {
 		bgColor = r.termColor.Color16[bg]
 	} else if bgMode == 2 {
-		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB)}
+		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB), A: 255}
 	}
 
 	var underlineColorVal color.Color = color.Transparent
@@ -236,4 +154,49 @@ func parseInt(s string) int {
 	}
 
 	return n
+}
+
+func parseColor(index int, params []string) (ind int, mode int, c256 int, r int, g int, b int) {
+	index++
+	i, err := strconv.Atoi(params[index])
+	if err != nil {
+		panic(err)
+	}
+
+	if i == 5 {
+		if index+1 >= len(params) {
+			panic("wrong format")
+		}
+
+		mode = 1
+		index++
+		c256 = parseInt(params[index])
+	} else if i == 2 {
+		mode = 2
+		if index+3 >= len(params) {
+			panic("wrong format")
+		}
+
+		index++
+		// Colorspace ID
+		if params[index] == "" {
+			if index+3 >= len(params) {
+				panic("wrong format")
+			}
+
+			index++
+		}
+
+		r = parseInt(params[index])
+
+		index++
+		g = parseInt(params[index])
+
+		index++
+		b = parseInt(params[index])
+	}
+
+	ind = index
+
+	return
 }
