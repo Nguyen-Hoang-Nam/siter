@@ -6,19 +6,19 @@ import (
 )
 
 var (
-	ERROR_INVALID_COLOR_FORMAT = errors.New("INVALID_FORMAT")
+	ErrInvalidColorFormat = errors.New("INVALID_FORMAT")
 )
 
 func ParseColor(colorStr string) (c color.RGBA, err error) {
 	if colorStr == "" {
-		return c, ERROR_INVALID_COLOR_FORMAT
+		return c, ErrInvalidColorFormat
 	}
 
 	if colorStr[0] == '#' {
 		return parseHexColor(colorStr)
 	}
 
-	return c, ERROR_INVALID_COLOR_FORMAT
+	return c, ErrInvalidColorFormat
 }
 
 // Credit https://stackoverflow.com/a/54200713
@@ -35,7 +35,7 @@ func parseHexColor(s string) (c color.RGBA, err error) {
 		c.G = hexToByte(s[2]) * 17
 		c.B = hexToByte(s[3]) * 17
 	default:
-		err = ERROR_INVALID_COLOR_FORMAT
+		err = ErrInvalidColorFormat
 	}
 
 	return
