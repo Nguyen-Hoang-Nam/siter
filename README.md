@@ -14,6 +14,11 @@ If the `SITER_CONFIG_DIRECTORY` environment variable is not defined, the configu
 be set to `path.Join(os.UserConfigDir, "siter")`. Siter reads configuration from the `config.toml` file.
 
 ```toml
+font_family = "$XDG_DATA_HOME/fonts/Fira Code Regular Nerd Font Complete Mono.ttf"
+bold_font = "$XDG_DATA_HOME/fonts/CascadiaCode.ttf"
+italic_font = "$XDG_DATA_HOME/fonts/CascadiaMono.ttf"
+bold_italic_font = "$XDG_DATA_HOME/fonts/CascadiaCode.ttf"
+shell = "sh"
 open_url_with = "brave"
 foreground_color = "#FFFFFF"
 background_color = "#000000"

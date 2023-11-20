@@ -8,10 +8,10 @@ func defaultConfig() Config {
 	defaultShell.UnmarshalText([]byte{'.'})
 
 	return Config{
-		FontFamily:        "monospace",
-		BoldFont:          "monospace",
-		ItalicFont:        "monospace",
-		BoldItalicFont:    "monospace",
+		FontFamily:        "",
+		BoldFont:          "",
+		ItalicFont:        "",
+		BoldItalicFont:    "",
 		FontSize:          16.0,
 		CursorColor:       parsingColor{color.RGBA{R: 103, G: 150, B: 230, A: 255}},
 		CursorTextColor:   parsingColor{color.RGBA{R: 17, G: 17, B: 17, A: 255}},
