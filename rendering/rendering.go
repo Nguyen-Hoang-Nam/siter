@@ -99,20 +99,14 @@ func read(reader *bufio.Reader) rune {
 }
 
 func getControlFunction(rs []rune, reader *bufio.Reader) (string, []rune) {
-	functionName, isEnd := utils.ControlFunctionOneCharacter(rs[0])
-	if isEnd {
-		return functionName, rs
-	}
-
-	rs = append(rs, read(reader))
-	functionName, isEnd = utils.ControlFunctionEsc7Bit(rs)
+	functionName, isEnd := utils.ControlCharacter(rs[0])
 	if isEnd {
 		return functionName, rs
 	}
 
 	for {
 		rs = append(rs, read(reader))
-		functionName, isEnd = utils.ControlFunctionEscSequence(rs)
+		functionName, isEnd = utils.ControlSequence(rs)
 		if isEnd {
 			return functionName, rs
 		}
