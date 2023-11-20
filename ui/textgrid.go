@@ -46,6 +46,7 @@ type TextGridStyle struct {
 	FGColor, BGColor color.Color
 	Bold, Italic     bool
 	Underline        UnderlineStyle
+	UnderLineColor   color.Color
 }
 
 type TextGrid struct {
@@ -168,8 +169,13 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 		t.refresh(rect)
 	}
 
-	if style.Underline != NoUnderline {
-		ulColor = fg
+	if style != nil && style.Underline != NoUnderline {
+		if style.UnderLineColor != color.Transparent {
+			ulColor = style.UnderLineColor
+		} else {
+			ulColor = fg
+		}
+
 		if style.Bold {
 			ulWidth = 2
 		}
@@ -177,7 +183,7 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 
 	ul := t.objects[pos*3+2].(*canvas.Line)
 	if ul.StrokeWidth != ulWidth || ul.StrokeColor != ulColor {
-		ul.StrokeWidth, ul.StrokeColor = 1, fg
+		ul.StrokeWidth, ul.StrokeColor = 1, ulColor
 		t.refresh(ul)
 	}
 }

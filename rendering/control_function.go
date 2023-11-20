@@ -58,14 +58,19 @@ func (r *Rendering) handleSGR(rs []rune) {
 	underline := ui.NoUnderline
 	fgMode := 0
 	bgMode := 0
+	underlineColorMode := 0
 	fg := -1
 	bg := -1
+	underlineColor := -1
 	fgR := -1
 	fgG := -1
 	fgB := -1
 	bgR := -1
 	bgG := -1
 	bgB := -1
+	underlineColorR := -1
+	underlineColorG := -1
+	underlineColorB := -1
 	fgColor := r.termColor.Foreground
 	bgColor := r.termColor.Background
 
@@ -110,17 +115,6 @@ func (r *Rendering) handleSGR(rs []rune) {
 		} else if i > 29 && i < 38 {
 			fgMode = 0
 			fg = i - 30
-		} else if i > 39 && i < 48 {
-			bgMode = 0
-			bg = i - 40
-		} else if i > 89 && i < 98 {
-			fgMode = 0
-			fg = i - 90
-			isFgBoldColor = true
-		} else if i > 99 && i < 108 {
-			bgMode = 0
-			bg = i - 100
-			isBgBoldColor = true
 		} else if i == 38 {
 			index++
 			i = parseInt(params[index])
@@ -149,6 +143,9 @@ func (r *Rendering) handleSGR(rs []rune) {
 					panic("wrong format")
 				}
 			}
+		} else if i > 39 && i < 48 {
+			bgMode = 0
+			bg = i - 40
 		} else if i == 48 {
 			index++
 			i, err := strconv.Atoi(params[index])
@@ -179,6 +176,44 @@ func (r *Rendering) handleSGR(rs []rune) {
 					panic("wrong format")
 				}
 			}
+		} else if i == 58 {
+			index++
+			i, err := strconv.Atoi(params[index])
+			if err != nil {
+				panic(err)
+			}
+
+			if i == 5 {
+				underlineColorMode = 1
+				if index+1 < len(params) {
+					index++
+					underlineColor = parseInt(params[index])
+				} else {
+					panic("wrong format")
+				}
+			} else if i == 2 {
+				underlineColorMode = 2
+				if index+3 < len(params) {
+					index++
+					underlineColorR = parseInt(params[index])
+
+					index++
+					underlineColorG = parseInt(params[index])
+
+					index++
+					underlineColorB = parseInt(params[index])
+				} else {
+					panic("wrong format")
+				}
+			}
+		} else if i > 89 && i < 98 {
+			fgMode = 0
+			fg = i - 90
+			isFgBoldColor = true
+		} else if i > 99 && i < 108 {
+			bgMode = 0
+			bg = i - 100
+			isBgBoldColor = true
 		}
 	}
 
@@ -208,12 +243,20 @@ func (r *Rendering) handleSGR(rs []rune) {
 		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB)}
 	}
 
+	var underlineColorVal color.Color = color.Transparent
+	if underlineColorMode == 1 {
+		underlineColorVal = r.termColor.Color16[underlineColor]
+	} else if underlineColorMode == 2 {
+		underlineColorVal = color.RGBA{R: uint8(underlineColorR), G: uint8(underlineColorG), B: uint8(underlineColorB)}
+	}
+
 	r.nextStyle = &ui.TextGridStyle{
-		FGColor:   fgColor,
-		BGColor:   bgColor,
-		Italic:    isItalic,
-		Bold:      isFgBoldColor,
-		Underline: underline,
+		FGColor:        fgColor,
+		BGColor:        bgColor,
+		Italic:         isItalic,
+		Bold:           isFgBoldColor,
+		Underline:      underline,
+		UnderLineColor: underlineColorVal,
 	}
 }
 
