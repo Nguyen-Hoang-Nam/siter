@@ -11,13 +11,17 @@ import (
 func (r *Rendering) handleControlFunction(functionName string, rs []rune) {
 	switch functionName {
 	case "LF":
-		r.handleLR()
+		r.handleLF()
+	case "CR":
+		r.handleLF()
+	case "BS":
+		r.handleBS()
 	case "SGR":
 		r.handleSGR(rs)
 	}
 }
 
-func (r *Rendering) handleLR() {
+func (r *Rendering) handleLF() {
 	r.cells = append(r.cells, widget.TextGridCell{
 		Rune: '\n',
 		Style: &widget.CustomTextGridStyle{
@@ -31,6 +35,15 @@ func (r *Rendering) handleLR() {
 
 	if !r.isNewLine {
 		r.isNewLine = true
+	}
+}
+
+func (r *Rendering) handleBS() {
+	r.cells = r.cells[:len(r.cells)-1]
+	r.rows[r.rowIndex] = widget.TextGridRow{Cells: r.cells}
+
+	if !r.isNewOutput {
+		r.isNewOutput = true
 	}
 }
 

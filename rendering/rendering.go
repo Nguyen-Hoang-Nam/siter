@@ -21,6 +21,7 @@ type Rendering struct {
 	rowIndex    int
 	textGrid    *widget.TextGrid
 	isNewLine   bool
+	isNewOutput bool
 	nextFGColor color.RGBA
 	nextBGColor color.RGBA
 }
@@ -33,6 +34,7 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 		rowIndex:    0,
 		textGrid:    textGrid,
 		isNewLine:   false,
+		isNewOutput: false,
 		nextFGColor: config.ForegroundColor.RGBA,
 		nextBGColor: config.BackgroundColor.RGBA,
 	}
@@ -40,8 +42,6 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 	rendering.textGrid.Rows = rendering.rows
 
 	rendering.rows[0] = widget.TextGridRow{Cells: rendering.cells}
-
-	isNewOutput := false
 
 	go func() {
 		reader := bufio.NewReader(process)
@@ -63,8 +63,8 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 
 				rendering.rows[rendering.rowIndex] = widget.TextGridRow{Cells: rendering.cells}
 
-				if !isNewOutput {
-					isNewOutput = true
+				if !rendering.isNewOutput {
+					rendering.isNewOutput = true
 				}
 			}
 		}
@@ -75,8 +75,8 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 		for {
 			time.Sleep(deplay)
 
-			if isNewOutput {
-				isNewOutput = false
+			if rendering.isNewOutput {
+				rendering.isNewOutput = false
 
 				rendering.textGrid.Refresh()
 
@@ -92,7 +92,6 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 func read(reader *bufio.Reader) rune {
 	r, _, err := reader.ReadRune()
 	if err != nil {
-
 		os.Exit(0)
 	}
 
