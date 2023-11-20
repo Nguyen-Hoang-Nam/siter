@@ -55,6 +55,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 	isFgBoldColor := false
 	isBgBoldColor := false
 	isItalic := false
+	underline := ui.NoUnderline
 	fgMode := 0
 	bgMode := 0
 	fg := -1
@@ -75,6 +76,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 			isFgBoldColor = false
 			isBgBoldColor = false
 			isItalic = false
+			underline = ui.NoUnderline
 			fgMode = 0
 			bgMode = 0
 			fg = -1
@@ -83,6 +85,28 @@ func (r *Rendering) handleSGR(rs []rune) {
 			isFgBoldColor = true
 		} else if i == 3 {
 			isItalic = true
+		} else if i == 4 {
+			if index+1 < len(params) {
+				index++
+				i = parseInt(params[index])
+				if i == 0 {
+					underline = ui.NoUnderline
+				} else if i == 1 {
+					underline = ui.StraightUnderline
+				} else if i == 2 {
+					underline = ui.DoubleUnderline
+				} else if i == 3 {
+					underline = ui.CurlyUnderline
+				} else if i == 4 {
+					underline = ui.DottedUnderline
+				} else if i >= 5 {
+					underline = ui.DashedUnderline
+				}
+			} else {
+				underline = ui.StraightUnderline
+			}
+		} else if i == 24 {
+			underline = ui.NoUnderline
 		} else if i > 29 && i < 38 {
 			fgMode = 0
 			fg = i - 30
@@ -184,7 +208,13 @@ func (r *Rendering) handleSGR(rs []rune) {
 		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB)}
 	}
 
-	r.nextStyle = &ui.TextGridStyle{FGColor: fgColor, BGColor: bgColor, Italic: isItalic, Bold: isFgBoldColor}
+	r.nextStyle = &ui.TextGridStyle{
+		FGColor:   fgColor,
+		BGColor:   bgColor,
+		Italic:    isItalic,
+		Bold:      isFgBoldColor,
+		Underline: underline,
+	}
 }
 
 func parseInt(s string) int {

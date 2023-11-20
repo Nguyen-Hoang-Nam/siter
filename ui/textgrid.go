@@ -31,9 +31,21 @@ type TextGridRow struct {
 	Style *TextGridStyle
 }
 
+type UnderlineStyle int
+
+const (
+	NoUnderline UnderlineStyle = iota
+	StraightUnderline
+	DoubleUnderline
+	CurlyUnderline
+	DottedUnderline
+	DashedUnderline
+)
+
 type TextGridStyle struct {
 	FGColor, BGColor color.Color
 	Bold, Italic     bool
+	Underline        UnderlineStyle
 }
 
 type TextGrid struct {
@@ -113,7 +125,8 @@ func (t *textGridRenderer) appendTextCell(str rune) {
 	text.TextStyle.Monospace = true
 
 	bg := canvas.NewRectangle(color.Transparent)
-	t.objects = append(t.objects, bg, text)
+	ul := canvas.NewLine(color.Transparent)
+	t.objects = append(t.objects, bg, text, ul)
 }
 
 func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextGridStyle) {
@@ -121,7 +134,10 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 		str = ' '
 	}
 
-	text := t.objects[pos*2+1].(*canvas.Text)
+	var ulWidth float32 = 1
+	var ulColor color.Color = color.Transparent
+
+	text := t.objects[pos*3+1].(*canvas.Text)
 	text.TextSize = theme.TextSize()
 	fg := theme.ForegroundColor()
 	if style != nil && style.FGColor != nil {
@@ -140,7 +156,7 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 		t.refresh(text)
 	}
 
-	rect := t.objects[pos*2].(*canvas.Rectangle)
+	rect := t.objects[pos*3].(*canvas.Rectangle)
 	bg := color.Color(color.Transparent)
 	if style != nil && style.BGColor != nil {
 		bg = style.BGColor
@@ -151,14 +167,27 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 		rect.FillColor = bg
 		t.refresh(rect)
 	}
+
+	if style.Underline != NoUnderline {
+		ulColor = fg
+		if style.Bold {
+			ulWidth = 2
+		}
+	}
+
+	ul := t.objects[pos*3+2].(*canvas.Line)
+	if ul.StrokeWidth != ulWidth || ul.StrokeColor != ulColor {
+		ul.StrokeWidth, ul.StrokeColor = 1, fg
+		t.refresh(ul)
+	}
 }
 
 func (t *textGridRenderer) addCellsIfRequired() {
 	cellCount := t.cols * t.rows
-	if len(t.objects) == cellCount*2 {
+	if len(t.objects) == cellCount*3 {
 		return
 	}
-	for i := len(t.objects); i < cellCount*2; i += 2 {
+	for i := len(t.objects); i < cellCount*3; i += 2 {
 		t.appendTextCell(' ')
 	}
 }
@@ -205,7 +234,7 @@ func (t *textGridRenderer) refreshGrid() {
 
 		line++
 	}
-	for ; x < len(t.objects)/2; x++ {
+	for ; x < len(t.objects)/3; x++ {
 		t.setCellRune(' ', x, TextGridStyleDefault, nil) // trailing cells and blank lines
 	}
 }
@@ -235,10 +264,16 @@ func (t *textGridRenderer) Layout(size fyne.Size) {
 	cellPos := fyne.NewPos(0, 0)
 	for y := 0; y < t.rows; y++ {
 		for x := 0; x < t.cols; x++ {
-			t.objects[i*2+1].Move(cellPos)
+			// rect
+			t.objects[i*3].Resize(t.cellSize)
+			t.objects[i*3].Move(cellPos)
 
-			t.objects[i*2].Resize(t.cellSize)
-			t.objects[i*2].Move(cellPos)
+			// text
+			t.objects[i*3+1].Move(cellPos)
+
+			// underline
+			t.objects[i*3+2].Move(cellPos.Add(fyne.Position{X: 0, Y: t.cellSize.Height}))
+			t.objects[i*3+2].Resize(fyne.Size{Width: t.cellSize.Width})
 			cellPos.X += t.cellSize.Width
 			i++
 		}

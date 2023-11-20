@@ -33,7 +33,13 @@ func Render(scrollContainer *container.Scroll, textGrid *ui.TextGrid, process io
 		textGrid:    textGrid,
 		isNewLine:   false,
 		isNewOutput: false,
-		nextStyle:   &ui.TextGridStyle{FGColor: config.ForegroundColor.RGBA, BGColor: config.BackgroundColor.RGBA, Italic: false, Bold: false},
+		nextStyle: &ui.TextGridStyle{
+			FGColor:   config.ForegroundColor.RGBA,
+			BGColor:   config.BackgroundColor.RGBA,
+			Italic:    false,
+			Bold:      false,
+			Underline: ui.NoUnderline,
+		},
 	}
 
 	rendering.textGrid.Rows = rendering.rows
