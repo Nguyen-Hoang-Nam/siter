@@ -47,6 +47,11 @@ func (r *Rendering) handleBS() {
 func (r *Rendering) handleSGR(rs []rune) {
 	params := strings.Split(string(rs[2:len(rs)-1]), ";")
 
+	// CSI m equal CSI 0 m
+	if len(params) == 1 && params[0] == "" {
+		params[0] = "0"
+	}
+
 	isFgBoldColor := false
 	isBgBoldColor := false
 	isItalic := false
