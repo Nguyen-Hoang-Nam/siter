@@ -2,46 +2,43 @@ package rendering
 
 import (
 	"bufio"
-	"image/color"
 	"io"
 	"os"
 	"siter/config"
-	termcolor "siter/term_color"
+	"siter/termcolor"
+	"siter/ui"
 	"siter/utils"
 	"time"
 
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
 )
 
 type Rendering struct {
 	termColor   termcolor.TermColor
-	rows        []widget.TextGridRow
-	cells       []widget.TextGridCell
+	rows        []ui.TextGridRow
+	cells       []ui.TextGridCell
 	rowIndex    int
-	textGrid    *widget.TextGrid
+	textGrid    *ui.TextGrid
 	isNewLine   bool
 	isNewOutput bool
-	nextFGColor color.RGBA
-	nextBGColor color.RGBA
+	nextStyle   *ui.TextGridStyle
 }
 
-func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, process io.Reader, config *config.Config) {
+func Render(scrollContainer *container.Scroll, textGrid *ui.TextGrid, process io.Reader, config *config.Config) {
 	rendering := &Rendering{
 		termColor:   termcolor.New(config),
-		rows:        make([]widget.TextGridRow, 1),
-		cells:       make([]widget.TextGridCell, 0),
+		rows:        make([]ui.TextGridRow, 1),
+		cells:       make([]ui.TextGridCell, 0),
 		rowIndex:    0,
 		textGrid:    textGrid,
 		isNewLine:   false,
 		isNewOutput: false,
-		nextFGColor: config.ForegroundColor.RGBA,
-		nextBGColor: config.BackgroundColor.RGBA,
+		nextStyle:   &ui.TextGridStyle{FGColor: config.ForegroundColor.RGBA, BGColor: config.BackgroundColor.RGBA, Italic: false, Bold: false},
 	}
 
 	rendering.textGrid.Rows = rendering.rows
 
-	rendering.rows[0] = widget.TextGridRow{Cells: rendering.cells}
+	rendering.rows[0] = ui.TextGridRow{Cells: rendering.cells}
 
 	go func() {
 		reader := bufio.NewReader(process)
@@ -53,15 +50,12 @@ func Render(scrollContainer *container.Scroll, textGrid *widget.TextGrid, proces
 				functionName, rs := getControlFunction([]rune{r}, reader)
 				rendering.handleControlFunction(functionName, rs)
 			} else {
-				rendering.cells = append(rendering.cells, widget.TextGridCell{
-					Rune: r,
-					Style: &widget.CustomTextGridStyle{
-						FGColor: rendering.nextFGColor,
-						BGColor: rendering.nextBGColor,
-					},
+				rendering.cells = append(rendering.cells, ui.TextGridCell{
+					Rune:  r,
+					Style: rendering.nextStyle,
 				})
 
-				rendering.rows[rendering.rowIndex] = widget.TextGridRow{Cells: rendering.cells}
+				rendering.rows[rendering.rowIndex] = ui.TextGridRow{Cells: rendering.cells}
 
 				if !rendering.isNewOutput {
 					rendering.isNewOutput = true

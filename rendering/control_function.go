@@ -2,10 +2,9 @@ package rendering
 
 import (
 	"image/color"
+	"siter/ui"
 	"strconv"
 	"strings"
-
-	"fyne.io/fyne/v2/widget"
 )
 
 func (r *Rendering) handleControlFunction(functionName string, rs []rune) {
@@ -22,14 +21,12 @@ func (r *Rendering) handleControlFunction(functionName string, rs []rune) {
 }
 
 func (r *Rendering) handleLF() {
-	r.cells = append(r.cells, widget.TextGridCell{
-		Rune: '\n',
-		Style: &widget.CustomTextGridStyle{
-			FGColor: r.nextFGColor,
-			BGColor: r.nextBGColor,
-		}})
-	r.cells = make([]widget.TextGridCell, 0)
-	r.rows = append(r.rows, widget.TextGridRow{Cells: r.cells})
+	r.cells = append(r.cells, ui.TextGridCell{
+		Rune:  '\n',
+		Style: r.nextStyle,
+	})
+	r.cells = make([]ui.TextGridCell, 0)
+	r.rows = append(r.rows, ui.TextGridRow{Cells: r.cells})
 	r.textGrid.Rows = r.rows
 	r.rowIndex++
 
@@ -40,7 +37,7 @@ func (r *Rendering) handleLF() {
 
 func (r *Rendering) handleBS() {
 	r.cells = r.cells[:len(r.cells)-1]
-	r.rows[r.rowIndex] = widget.TextGridRow{Cells: r.cells}
+	r.rows[r.rowIndex] = ui.TextGridRow{Cells: r.cells}
 
 	if !r.isNewOutput {
 		r.isNewOutput = true
@@ -48,10 +45,11 @@ func (r *Rendering) handleBS() {
 }
 
 func (r *Rendering) handleSGR(rs []rune) {
-	params := strings.Split(string(rs[1:len(rs)-1]), ";")
+	params := strings.Split(string(rs[2:len(rs)-1]), ";")
 
 	isFgBoldColor := false
 	isBgBoldColor := false
+	isItalic := false
 	fgMode := 0
 	bgMode := 0
 	fg := -1
@@ -65,18 +63,21 @@ func (r *Rendering) handleSGR(rs []rune) {
 	fgColor := r.termColor.Foreground
 	bgColor := r.termColor.Background
 
-	for index := 1; index < len(params); index++ {
+	for index := 0; index < len(params); index++ {
 		i := parseInt(params[index])
 
 		if i == 0 {
 			isFgBoldColor = false
 			isBgBoldColor = false
+			isItalic = false
 			fgMode = 0
 			bgMode = 0
 			fg = -1
 			bg = -1
 		} else if i == 1 {
 			isFgBoldColor = true
+		} else if i == 3 {
+			isItalic = true
 		} else if i > 29 && i < 38 {
 			fgMode = 0
 			fg = i - 30
@@ -178,8 +179,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 		bgColor = color.RGBA{R: uint8(bgR), G: uint8(bgG), B: uint8(bgB)}
 	}
 
-	r.nextFGColor = fgColor
-	r.nextBGColor = bgColor
+	r.nextStyle = &ui.TextGridStyle{FGColor: fgColor, BGColor: bgColor, Italic: isItalic, Bold: isFgBoldColor}
 }
 
 func parseInt(s string) int {
