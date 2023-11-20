@@ -60,11 +60,11 @@ var controlSequences = map[rune]map[rune]map[int32]string{
 	'D': {
 		-1: {'D': "IND"},
 	},
-	'H': {
-		-1: {'H': "HTS"},
-	},
 	'E': {
 		-1: {'E': "NEL"},
+	},
+	'H': {
+		-1: {'H': "HTS"},
 	},
 	'M': {
 		-1: {'M': "RI"},

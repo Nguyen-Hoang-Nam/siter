@@ -77,6 +77,7 @@ func defaultConfig() Config {
 			"ctrl+]":  "write \x1d",
 			"ctrl+^":  "write \x1e",
 			"ctrl+_":  "write \x1f",
+			"ctrl+?":  "write \x7f",
 		},
 	}
 }
