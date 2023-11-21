@@ -61,6 +61,8 @@ var controlSequences = map[rune]map[rune]map[rune]FunctionName{
 	'>': {-1: {'>': DECPNM}},
 
 	// Esc + 7 bit
+	'@':  {-1: {'@': PAD}},
+	'A':  {-1: {'A': HOP}},
 	'B':  {-1: {'B': BPH}},
 	'C':  {-1: {'C': NBH}},
 	'D':  {-1: {'D': IND}},

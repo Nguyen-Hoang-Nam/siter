@@ -37,7 +37,9 @@ const (
 	US
 	DEL FunctionName = 0x7f
 
-	BPH FunctionName = iota + 0x61
+	PAD FunctionName = iota + 0x5f
+	HOP
+	BPH
 	NBH
 	IND
 	NEL
