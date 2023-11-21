@@ -1,18 +1,19 @@
 package rendering
 
 import (
+	controlfunction "siter/control_function"
 	"siter/ui"
 )
 
-func (r *Rendering) handleControlFunction(functionName string, rs []rune) {
+func (r *Rendering) handleControlFunction(functionName controlfunction.FunctionName, rs []rune) {
 	switch functionName {
-	case "LF":
+	case controlfunction.LF:
 		r.handleLF()
-	case "CR":
+	case controlfunction.CR:
 		r.handleLF()
-	case "BS":
+	case controlfunction.BS:
 		r.handleBS()
-	case "SGR":
+	case controlfunction.SGR:
 		r.handleSGR(rs)
 	}
 }

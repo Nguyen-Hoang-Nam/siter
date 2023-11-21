@@ -5,9 +5,9 @@ import (
 	"io"
 	"os"
 	"siter/config"
+	controlfunction "siter/control_function"
 	"siter/termcolor"
 	"siter/ui"
-	"siter/utils"
 	"time"
 
 	"fyne.io/fyne/v2/container"
@@ -52,7 +52,7 @@ func Render(scrollContainer *container.Scroll, textGrid *ui.TextGrid, process io
 		for {
 			r := read(reader)
 
-			if utils.IsControlCharacter(r) {
+			if controlfunction.IsControlCharacter(r) {
 				functionName, rs := getControlFunction([]rune{r}, reader)
 				rendering.handleControlFunction(functionName, rs)
 			} else {
@@ -98,15 +98,15 @@ func read(reader *bufio.Reader) rune {
 	return r
 }
 
-func getControlFunction(rs []rune, reader *bufio.Reader) (string, []rune) {
-	functionName, isEnd := utils.ControlCharacter(rs[0])
+func getControlFunction(rs []rune, reader *bufio.Reader) (controlfunction.FunctionName, []rune) {
+	functionName, isEnd := controlfunction.ControlCharacter(rs[0])
 	if isEnd {
 		return functionName, rs
 	}
 
 	for {
 		rs = append(rs, read(reader))
-		functionName, isEnd = utils.ControlSequence(rs)
+		functionName, isEnd = controlfunction.ControlSequence(rs)
 		if isEnd {
 			return functionName, rs
 		}
