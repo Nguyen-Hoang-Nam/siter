@@ -14,6 +14,7 @@ import (
 )
 
 type Rendering struct {
+	config      *config.Config
 	termColor   termcolor.TermColor
 	rows        []ui.TextGridRow
 	cells       []ui.TextGridCell
@@ -26,6 +27,7 @@ type Rendering struct {
 
 func Render(scrollContainer *container.Scroll, textGrid *ui.TextGrid, process io.Reader, config *config.Config) {
 	rendering := &Rendering{
+		config:      config,
 		termColor:   termcolor.New(config),
 		rows:        make([]ui.TextGridRow, 1),
 		cells:       make([]ui.TextGridCell, 0),

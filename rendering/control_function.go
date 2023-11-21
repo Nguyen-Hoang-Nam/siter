@@ -24,9 +24,13 @@ func (r *Rendering) handleLF() {
 		Style: r.nextStyle,
 	})
 	r.cells = make([]ui.TextGridCell, 0)
-	r.rows = append(r.rows, ui.TextGridRow{Cells: r.cells})
+	if len(r.rows) == r.config.ScrollbackLines {
+		r.rows = append(r.rows[1:], ui.TextGridRow{Cells: r.cells})
+	} else {
+		r.rows = append(r.rows, ui.TextGridRow{Cells: r.cells})
+		r.rowIndex++
+	}
 	r.textGrid.Rows = r.rows
-	r.rowIndex++
 
 	if !r.isNewLine {
 		r.isNewLine = true
