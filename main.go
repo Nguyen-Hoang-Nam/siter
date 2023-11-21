@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"siter/config"
-	"siter/mapping"
 	"siter/pty"
 	"siter/rendering"
+	"siter/typing"
 	"siter/ui"
 
 	"fyne.io/fyne/v2"
@@ -29,7 +29,7 @@ func main() {
 	}
 	defer p.Close()
 
-	mapping.Load(w.Canvas(), p, c)
+	typing.Load(w.Canvas(), p, c)
 
 	rendering.Render(scrollContainer, textGrid, p, c)
 

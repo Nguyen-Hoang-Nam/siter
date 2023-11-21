@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 	"siter/config"
-	controlfunction "siter/control_function"
-	"siter/termcolor"
+	controlfunction "siter/internal/control_function"
+	"siter/internal/termcolor"
 	"siter/ui"
 	"time"
 

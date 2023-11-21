@@ -1,7 +1,7 @@
 package rendering
 
 import (
-	controlfunction "siter/control_function"
+	controlfunction "siter/internal/control_function"
 	"siter/ui"
 )
 

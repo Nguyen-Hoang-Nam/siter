@@ -3,7 +3,7 @@ package rendering
 import (
 	"errors"
 	"image/color"
-	"siter/termcolor"
+	"siter/internal/termcolor"
 	"siter/ui"
 	"strconv"
 	"strings"

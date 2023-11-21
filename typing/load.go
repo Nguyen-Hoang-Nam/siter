@@ -1,4 +1,4 @@
-package mapping
+package typing
 
 import (
 	"runtime"
