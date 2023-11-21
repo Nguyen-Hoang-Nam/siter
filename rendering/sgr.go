@@ -95,6 +95,8 @@ func (r *Rendering) handleSGR(rs []rune) {
 			} else {
 				underline = ui.StraightUnderline
 			}
+		} else if i == 7 {
+			fgMode, fg, fgR, fgG, fgB, fgA, bgMode, bg, bgR, bgG, bgB, bgA = bgMode, bg, bgR, bgG, bgB, bgA, fgMode, fg, fgR, fgG, fgB, fgA
 		} else if i == 24 {
 			underline = ui.NoUnderline
 		} else if i > 29 && i < 38 {
