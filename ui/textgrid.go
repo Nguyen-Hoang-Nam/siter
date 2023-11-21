@@ -10,12 +10,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-const (
-	textAreaSpaceSymbol   = '·'
-	textAreaTabSymbol     = '→'
-	textAreaNewLineSymbol = '↵'
-)
-
 var (
 	TextGridStyleDefault    *TextGridStyle
 	TextGridStyleWhitespace *TextGridStyle
@@ -28,7 +22,6 @@ type TextGridCell struct {
 
 type TextGridRow struct {
 	Cells []TextGridCell
-	Style *TextGridStyle
 }
 
 type UnderlineStyle int
@@ -52,8 +45,6 @@ type TextGridStyle struct {
 type TextGrid struct {
 	widget.BaseWidget
 	Rows []TextGridRow
-
-	ShowWhitespace bool
 }
 
 func (t *TextGrid) MinSize() fyne.Size {
@@ -130,11 +121,7 @@ func (t *textGridRenderer) appendTextCell(str rune) {
 	t.objects = append(t.objects, bg, text, ul)
 }
 
-func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextGridStyle) {
-	if str == 0 {
-		str = ' '
-	}
-
+func (t *textGridRenderer) setCellRune(str rune, pos int, style *TextGridStyle) {
 	var ulWidth float32 = 1
 	var ulColor color.Color = color.Transparent
 
@@ -143,8 +130,6 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 	fg := theme.ForegroundColor()
 	if style != nil && style.FGColor != nil {
 		fg = style.FGColor
-	} else if rowStyle != nil && rowStyle.FGColor != nil {
-		fg = rowStyle.FGColor
 	}
 	newStr := string(str)
 	if text.Text != newStr || text.Color != fg {
@@ -161,8 +146,6 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 	bg := color.Color(color.Transparent)
 	if style != nil && style.BGColor != nil {
 		bg = style.BGColor
-	} else if rowStyle != nil && rowStyle.BGColor != nil {
-		bg = rowStyle.BGColor
 	}
 	if rect.FillColor != bg {
 		rect.FillColor = bg
@@ -188,60 +171,31 @@ func (t *textGridRenderer) setCellRune(str rune, pos int, style, rowStyle *TextG
 	}
 }
 
-func (t *textGridRenderer) addCellsIfRequired() {
-	cellCount := t.cols * t.rows
-	if len(t.objects) == cellCount*3 {
-		return
-	}
-	for i := len(t.objects); i < cellCount*3; i += 2 {
-		t.appendTextCell(' ')
-	}
-}
-
 func (t *textGridRenderer) refreshGrid() {
 	line := 1
 	x := 0
 
-	for rowIndex, row := range t.text.Rows {
-		rowStyle := row.Style
+	for _, row := range t.text.Rows {
 		i := 0
 		for _, r := range row.Cells {
 			if i >= t.cols {
 				continue
 			}
-			if t.text.ShowWhitespace && (r.Rune == ' ' || r.Rune == '\t') {
-				sym := textAreaSpaceSymbol
-				if r.Rune == '\t' {
-					sym = textAreaTabSymbol
-				}
 
-				if r.Style != nil && r.Style.BGColor != nil {
-					whitespaceBG := &TextGridStyle{FGColor: TextGridStyleWhitespace.FGColor,
-						BGColor: r.Style.BGColor}
-					t.setCellRune(sym, x, whitespaceBG, rowStyle)
-				} else {
-					t.setCellRune(sym, x, TextGridStyleWhitespace, rowStyle)
-				}
-			} else {
-				t.setCellRune(r.Rune, x, r.Style, rowStyle)
-			}
+			t.setCellRune(r.Rune, x, r.Style)
 			i++
 			x++
 		}
-		if t.text.ShowWhitespace && i < t.cols && rowIndex < len(t.text.Rows)-1 {
-			t.setCellRune(textAreaNewLineSymbol, x, TextGridStyleWhitespace, rowStyle)
-			i++
-			x++
-		}
+
 		for ; i < t.cols; i++ {
-			t.setCellRune(' ', x, TextGridStyleDefault, rowStyle)
+			t.setCellRune(' ', x, TextGridStyleDefault)
 			x++
 		}
 
 		line++
 	}
 	for ; x < len(t.objects)/3; x++ {
-		t.setCellRune(' ', x, TextGridStyleDefault, nil) // trailing cells and blank lines
+		t.setCellRune(' ', x, TextGridStyleDefault)
 	}
 }
 
@@ -254,13 +208,16 @@ func (t *textGridRenderer) updateGridSize(size fyne.Size) {
 	sizeCols := math.Floor(float64(size.Width) / float64(t.cellSize.Width))
 	sizeRows := math.Floor(float64(size.Height) / float64(t.cellSize.Height))
 
-	if t.text.ShowWhitespace {
-		bufCols++
-	}
-
 	t.cols = int(math.Max(sizeCols, float64(bufCols)))
 	t.rows = int(math.Max(sizeRows, float64(bufRows)))
-	t.addCellsIfRequired()
+
+	cellCount := t.cols * t.rows
+	if len(t.objects) == cellCount*3 {
+		return
+	}
+	for i := len(t.objects); i < cellCount*3; i += 2 {
+		t.appendTextCell(' ')
+	}
 }
 
 func (t *textGridRenderer) Layout(size fyne.Size) {
@@ -310,15 +267,13 @@ func (t *textGridRenderer) Refresh() {
 	t.refreshGrid()
 }
 
-func (t *textGridRenderer) ApplyTheme() {
-}
+func (t *textGridRenderer) ApplyTheme() {}
 
 func (t *textGridRenderer) Objects() []fyne.CanvasObject {
 	return t.objects
 }
 
-func (t *textGridRenderer) Destroy() {
-}
+func (t *textGridRenderer) Destroy() {}
 
 func (t *textGridRenderer) refresh(obj fyne.CanvasObject) {
 	if t.current == nil {
