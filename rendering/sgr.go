@@ -1,6 +1,7 @@
 package rendering
 
 import (
+	"errors"
 	"image/color"
 	"siter/termcolor"
 	"siter/ui"
@@ -100,14 +101,23 @@ func (r *Rendering) handleSGR(rs []rune) {
 			fgMode = 0
 			fg = i - 30
 		} else if i == 38 {
-			index, fgMode, fg, fgR, fgG, fgB, fgA = parseColor(index, params)
+			ind, mode, c256, r, g, b, a, err := parseColor(index, params)
+			if err == nil {
+				index, fgMode, fg, fgR, fgG, fgB, fgA = ind, mode, c256, r, g, b, a
+			}
 		} else if i > 39 && i < 48 {
 			bgMode = 0
 			bg = i - 40
 		} else if i == 48 {
-			index, bgMode, bg, bgR, bgG, bgB, bgA = parseColor(index, params)
+			ind, mode, c256, r, g, b, a, err := parseColor(index, params)
+			if err == nil {
+				index, bgMode, bg, bgR, bgG, bgB, bgA = ind, mode, c256, r, g, b, a
+			}
 		} else if i == 58 {
-			index, underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA = parseColor(index, params)
+			ind, mode, c256, r, g, b, a, err := parseColor(index, params)
+			if err == nil {
+				index, underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA = ind, mode, c256, r, g, b, a
+			}
 		} else if i > 89 && i < 98 {
 			fgMode = 0
 			fg = i - 90
@@ -163,70 +173,70 @@ func parseInt(s string) int {
 	return n
 }
 
-func parseColor(index int, params []string) (ind int, mode SGRColorMode, c256 int, r int, g int, b int, a int) {
+func parseColor(index int, params []string) (ind int, mode SGRColorMode, c256 int, r int, g int, b int, a int, err error) {
 	index++
 	i, err := strconv.Atoi(params[index])
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	if i == 5 { // 256
 		if index+1 >= len(params) {
-			panic("wrong format")
+			err = errors.New("WRONG_FORMAT")
+			return
 		}
 
 		mode = Color256Mode
 		index++
 		c256 = parseInt(params[index])
 	} else if i == 2 { // RGB
-		mode = ColorRGBMode
 		if index+3 >= len(params) {
-			panic("wrong format")
+			err = errors.New("WRONG_FORMAT")
+			return
 		}
 
 		index++
 		// Colorspace ID
 		if params[index] == "" {
 			if index+3 >= len(params) {
-				panic("wrong format")
+				err = errors.New("WRONG_FORMAT")
+				return
 			}
 
 			index++
 		}
 
 		r = parseInt(params[index])
-
 		index++
 		g = parseInt(params[index])
-
 		index++
 		b = parseInt(params[index])
+		mode = ColorRGBMode
 	} else if i == 6 { // RGBA
-		mode = ColorRGBAMode
 		if index+4 >= len(params) {
-			panic("wrong format")
+			err = errors.New("WRONG_FORMAT")
+			return
 		}
 
 		index++
 		// Colorspace ID
 		if params[index] == "" {
 			if index+4 >= len(params) {
-				panic("wrong format")
+				err = errors.New("WRONG_FORMAT")
+				return
 			}
 
 			index++
 		}
 
 		r = parseInt(params[index])
-
 		index++
 		g = parseInt(params[index])
-
 		index++
 		b = parseInt(params[index])
-
 		index++
 		a = parseInt(params[index])
+		mode = ColorRGBAMode
 	}
 
 	ind = index
