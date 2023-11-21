@@ -3,6 +3,8 @@ package ui
 import (
 	"image/color"
 	"os"
+	"regexp"
+	"runtime"
 	"siter/config"
 
 	"fyne.io/fyne/v2"
@@ -45,13 +47,26 @@ func loadCustomFont(fontPath string, fallback fyne.Resource) fyne.Resource {
 		return fallback
 	}
 
-	res, err := fyne.LoadResourceFromPath(os.ExpandEnv(fontPath))
+	res, err := fyne.LoadResourceFromPath(expandEnv(fontPath))
 	if err != nil {
 		fyne.LogError("Error loading specified font", err)
 		return fallback
 	}
 
 	return res
+}
+
+var re = regexp.MustCompile(`%(.+)%`)
+
+func expandEnv(text string) string {
+	goos := runtime.GOOS
+	if goos == "windows" {
+		text = os.ExpandEnv(re.ReplaceAllString(text, `${${1}}`))
+	} else if goos == "linux" || goos == "darwin" {
+		text = os.ExpandEnv(text)
+	}
+
+	return text
 }
 
 func (t *Theme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
