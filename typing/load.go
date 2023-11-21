@@ -40,6 +40,10 @@ func controlCharacters() map[fyne.KeyName][]byte {
 		fyne.KeyF10:       {'\x1b', '[', '2', '1', '~'},
 		fyne.KeyF11:       {'\x1b', '[', '2', '3', '~'},
 		fyne.KeyF12:       {'\x1b', '[', '2', '4', '~'},
+		fyne.KeyUp:        {'\x1b', '[', 'A'},
+		fyne.KeyDown:      {'\x1b', '[', 'B'},
+		fyne.KeyRight:     {'\x1b', '[', 'C'},
+		fyne.KeyLeft:      {'\x1b', '[', 'D'},
 	}
 }
 
