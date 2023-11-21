@@ -11,8 +11,30 @@ var controlCharacterToEscapeSequence = map[rune][]rune{
 var controlSequences = map[rune]map[rune]map[rune]FunctionName{
 	// nF Escape sequences
 	' ': {
-		'F': {'F': S7C1T},
-		'G': {'G': S8C1T},
+		'A':  {'A': ISO2022},
+		'B':  {'B': ISO2022},
+		'C':  {'C': ISO2022},
+		'D':  {'D': ISO2022},
+		'E':  {'E': ISO2022},
+		'F':  {'F': S7C1T},
+		'G':  {'G': S8C1T},
+		'H':  {'H': ISO2022},
+		'I':  {'I': ISO2022},
+		'J':  {'J': ISO2022},
+		'K':  {'K': ISO2022},
+		'L':  {'L': ISO4873L1},
+		'M':  {'M': ISO4873L2},
+		'N':  {'N': ISO4873L3},
+		'P':  {'P': ISO2022},
+		'R':  {'R': ISO2022},
+		'S':  {'S': ISO2022},
+		'T':  {'T': ISO2022},
+		'U':  {'U': ISO2022},
+		'V':  {'V': ISO2022},
+		'W':  {'W': ISO2022},
+		'Z':  {'Z': ISO2022},
+		'[':  {'[': ISO2022},
+		'\\': {'\\': ISO2022},
 	},
 	'#': {
 		'3': {'3': DECDHLT},
@@ -20,6 +42,14 @@ var controlSequences = map[rune]map[rune]map[rune]FunctionName{
 		'5': {'5': DECSWL},
 		'6': {'6': DECDWL},
 		'8': {'8': DECALN},
+	},
+	'%': {
+		-1: {'G': UTF8},
+		'/': {
+			'I': UTF8,
+			'L': UTF16,
+			'F': UTF32,
+		},
 	},
 
 	// Fp Escape sequences
@@ -64,6 +94,9 @@ var controlSequences = map[rune]map[rune]map[rune]FunctionName{
 	0x64: {-1: {0x64: CMD}},
 	0x6e: {-1: {0x6e: LS2}},
 	0x6f: {-1: {0x6f: LS3}},
+	0x7c: {-1: {0x7c: LS3R}},
+	0x7d: {-1: {0x7d: LS2R}},
+	0x7e: {-1: {0x7e: LS1R}},
 
 	// Esc + 8 bit
 	0x82: {-1: {0x82: BPH}},
@@ -153,33 +186,31 @@ var controlSequences = map[rune]map[rune]map[rune]FunctionName{
 			'l': DECRST,
 			'n': DSR,
 		},
-		'>': {
-			'c': DA2,
-		},
-		'=': {
-			'c': DA3,
-		},
-		'!': {
-			'p': DECSTR,
-		},
+		'>': {'c': DA2},
+		'=': {'c': DA3},
+		'!': {'p': DECSTR},
 	},
 
 	// OSC
 	']': {
 		-1: {
-			0x07: OSC,
-			0x9c: OSC,
+			rune(BEL): OSC,
+			rune(ST):  OSC,
 		},
 	},
 
 	// DCS
-	'P': {-1: {0x9c: DCS}},
+	'P': {
+		-1:  {rune(ST): DCS},
+		'!': {rune(ST): DECRPTUI},
+		'"': {rune(ST): DECCKD},
+	},
 
 	// APC
-	'_': {-1: {0x9c: APC}},
+	'_': {-1: {rune(ST): APC}},
 
 	// PM
-	'^': {-1: {0x9c: PM}},
+	'^': {-1: {rune(ST): PM}},
 }
 
 func ControlSequence(rs []rune) (name FunctionName, isEnd bool) {
