@@ -56,6 +56,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 	underlineColorA := -1
 	fgColor := r.termColor.Foreground
 	bgColor := r.termColor.Background
+	var underlineColorVal color.Color = r.termColor.Foreground
 
 	for index := 0; index < len(params); index++ {
 		i := parseInt(params[index])
@@ -153,8 +154,17 @@ func (r *Rendering) handleSGR(rs []rune) {
 		bgColor = generateColor(bgMode, bg, bgR, bgG, bgB, bgA, r.termColor)
 	}
 
-	var underlineColorVal color.Color = color.Transparent
-	underlineColorVal = generateColor(underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA, r.termColor)
+	if underline != ui.NoUnderline {
+		if underlineColorMode == Color16Mode {
+			if underlineColor != -1 {
+				underlineColorVal = r.termColor.Color16[underlineColor]
+			}
+		} else {
+			underlineColorVal = generateColor(underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA, r.termColor)
+		}
+	} else {
+		underlineColorVal = color.Transparent
+	}
 
 	r.nextStyle = &ui.TextGridStyle{
 		FGColor:        fgColor,
