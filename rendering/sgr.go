@@ -248,7 +248,7 @@ func parseColor(index int, params []string) (ind int, mode SGRColorMode, c256 in
 
 func generateColor(mode SGRColorMode, c256 int, r int, g int, b int, a int, termColor termcolor.TermColor) (c color.RGBA) {
 	if mode == Color256Mode {
-		c = termColor.Color16[c256]
+		c = termColor.Color256[c256]
 	} else if mode == ColorRGBMode {
 		c = color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 255}
 	} else if mode == ColorRGBAMode {
