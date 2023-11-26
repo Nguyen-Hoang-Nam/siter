@@ -55,7 +55,7 @@ func (r *Rendering) handleSGR(rs []rune) {
 	underlineColorB := -1
 	underlineColorA := -1
 	fgColor := r.termColor.Foreground
-	bgColor := r.termColor.Background
+	var bgColor color.Color = color.Transparent
 	var underlineColorVal color.Color = r.termColor.Foreground
 
 	for index := 0; index < len(params); index++ {
@@ -166,14 +166,14 @@ func (r *Rendering) handleSGR(rs []rune) {
 		underlineColorVal = color.Transparent
 	}
 
-	r.nextStyle = &ui.TextGridStyle{
-		FGColor:        fgColor,
-		BGColor:        bgColor,
-		Italic:         isItalic,
-		Bold:           isFgBoldColor,
-		Underline:      underline,
-		UnderLineColor: underlineColorVal,
+	r.nextStyle.ForegroundColor = fgColor
+	r.nextStyle.BackgroundColor = bgColor
+	r.nextStyle.FontStyle = ui.FontStyle{
+		Italic: isItalic,
+		Bold:   isFgBoldColor,
 	}
+	r.nextStyle.Underline = underline
+	r.nextStyle.UnderlineColor = underlineColorVal
 }
 
 func parseInt(s string) int {

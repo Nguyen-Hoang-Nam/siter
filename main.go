@@ -18,8 +18,8 @@ import (
 func main() {
 	a := app.New()
 	w := a.NewWindow("Siter")
-	textGrid := ui.NewTextGrid()
-	scrollContainer := container.NewVScroll(textGrid)
+	terminal := ui.NewTerminal()
+	scrollContainer := container.NewVScroll(terminal)
 
 	c := config.Load()
 	p, err := pty.Start(c)
@@ -31,10 +31,10 @@ func main() {
 
 	typing.Load(w.Canvas(), p, c)
 
-	rendering.Render(scrollContainer, textGrid, p, c)
+	rendering.Render(scrollContainer, terminal, p, c)
 
 	a.Settings().SetTheme(ui.NewTheme(c))
 
-	w.SetContent(container.New(layout.NewMaxLayout(), scrollContainer))
+	w.SetContent(container.New(layout.NewStackLayout(), scrollContainer))
 	w.ShowAndRun()
 }

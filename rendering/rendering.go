@@ -16,54 +16,58 @@ import (
 type Rendering struct {
 	config      *config.Config
 	termColor   termcolor.TermColor
-	rows        []ui.TextGridRow
-	cells       []ui.TextGridCell
+	rows        []ui.TerminalRow
+	cells       []ui.RuneCell
 	rowIndex    int
-	textGrid    *ui.TextGrid
+	terminal    *ui.Terminal
 	isNewLine   bool
 	isNewOutput bool
-	nextStyle   *ui.TextGridStyle
+	nextStyle   ui.RuneCellStyle
 }
 
-func Render(scrollContainer *container.Scroll, textGrid *ui.TextGrid, process io.Reader, config *config.Config) {
+func Render(scrollContainer *container.Scroll, terminal *ui.Terminal, process io.Reader, config *config.Config) {
 	rendering := &Rendering{
 		config:      config,
 		termColor:   termcolor.New(config),
-		rows:        make([]ui.TextGridRow, 1),
-		cells:       make([]ui.TextGridCell, 0),
+		rows:        make([]ui.TerminalRow, 1),
+		cells:       make([]ui.RuneCell, 0),
 		rowIndex:    0,
-		textGrid:    textGrid,
+		terminal:    terminal,
 		isNewLine:   false,
 		isNewOutput: false,
-		nextStyle: &ui.TextGridStyle{
-			FGColor:   config.ForegroundColor.RGBA,
-			BGColor:   config.BackgroundColor.RGBA,
-			Italic:    false,
-			Bold:      false,
+		nextStyle: ui.RuneCellStyle{
+			ForegroundColor: config.ForegroundColor.RGBA,
+			BackgroundColor: config.BackgroundColor.RGBA,
+			FontStyle: ui.FontStyle{
+				Italic: false,
+				Bold:   false,
+			},
+			FontSize:  float32(config.FontSize),
 			Underline: ui.NoUnderline,
+			Overline:  false,
+			Strike:    false,
 		},
 	}
 
-	rendering.textGrid.Rows = rendering.rows
+	rendering.terminal.Rows = rendering.rows
 
-	rendering.rows[0] = ui.TextGridRow{Cells: rendering.cells}
+	rendering.rows[0] = ui.TerminalRow{Cells: rendering.cells}
 
 	go func() {
 		reader := bufio.NewReader(process)
 
 		for {
 			r := read(reader)
-
 			if controlfunction.IsControlCharacter(r) {
 				functionName, rs := getControlFunction([]rune{r}, reader)
 				rendering.handleControlFunction(functionName, rs)
 			} else {
-				rendering.cells = append(rendering.cells, ui.TextGridCell{
+				rendering.cells = append(rendering.cells, ui.RuneCell{
 					Rune:  r,
 					Style: rendering.nextStyle,
 				})
 
-				rendering.rows[rendering.rowIndex] = ui.TextGridRow{Cells: rendering.cells}
+				rendering.rows[rendering.rowIndex] = ui.TerminalRow{Cells: rendering.cells}
 
 				if !rendering.isNewOutput {
 					rendering.isNewOutput = true
@@ -80,7 +84,7 @@ func Render(scrollContainer *container.Scroll, textGrid *ui.TextGrid, process io
 			if rendering.isNewOutput {
 				rendering.isNewOutput = false
 
-				rendering.textGrid.Refresh()
+				rendering.terminal.Refresh()
 
 				if rendering.isNewLine {
 					rendering.isNewLine = false
