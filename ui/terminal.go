@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"math"
 
 	"fyne.io/fyne/v2"
@@ -13,9 +14,16 @@ type TerminalRow struct {
 	Cells []RuneCell
 }
 
+type Cursor struct {
+	Row int
+	Col int
+}
+
 type Terminal struct {
 	widget.BaseWidget
-	Rows []TerminalRow
+	Rows   []TerminalRow
+	Cursor Cursor
+	Index  int
 }
 
 func (t *Terminal) MinSize() fyne.Size {
@@ -38,15 +46,17 @@ func (t *Terminal) CreateRenderer() fyne.WidgetRenderer {
 
 	return &terminalRenderer{
 		terminal:         t,
-		lastCursor:       fyne.Position{X: 0, Y: 0},
+		lastCursor:       Cursor{Row: 0, Col: 0},
 		lastCellPos:      fyne.Position{X: 0, Y: 0},
-		lastRenderCursor: fyne.Position{X: 0, Y: 0},
+		lastRenderCursor: Cursor{Row: 0, Col: 0},
 		cellSize:         cellSize,
 	}
 }
 
 func NewTerminal() *Terminal {
-	terminal := &Terminal{}
+	terminal := &Terminal{
+		Cursor: Cursor{Row: 0, Col: 0},
+	}
 	terminal.ExtendBaseWidget(terminal)
 	return terminal
 }
@@ -59,9 +69,9 @@ type terminalRenderer struct {
 	cellSize         fyne.Size
 	current          fyne.Canvas
 	objects          []fyne.CanvasObject
-	lastCursor       fyne.Position
+	lastCursor       Cursor
 	lastCellPos      fyne.Position
-	lastRenderCursor fyne.Position
+	lastRenderCursor Cursor
 }
 
 func (t *terminalRenderer) Layout(size fyne.Size) {
@@ -76,18 +86,27 @@ func (t *terminalRenderer) Layout(size fyne.Size) {
 
 func (t *terminalRenderer) MinSize() fyne.Size {
 	return fyne.NewSize(t.cellSize.Width*float32(t.cols),
-		t.cellSize.Height*float32(t.lastRenderCursor.Y+1))
+		t.cellSize.Height*float32(t.lastRenderCursor.Row+1))
 }
 
 func (t *terminalRenderer) Refresh() {
+	// if t.lastCursor.Col > t.terminal.Cursor.Col || t.lastCursor.Row > t.terminal.Cursor.Row {
+	// 	if t.lastCursor.Row == t.terminal.Cursor.Row && t.lastCursor.Col >= len(t.terminal.Rows[t.lastCursor.Row].Cells) {
+	// 		diff := t.lastCursor.Col - len(t.terminal.Rows[t.lastCursor.Row].Cells)
+	// 		t.objects = t.objects[0 : len(t.objects)-diff]
+	// 	}
+	// 	t.lastCursor.Col = t.terminal.Cursor.Col
+	// 	t.lastCursor.Row = t.terminal.Cursor.Row
+	// }
+
 	cellPos := t.lastCellPos
-	rowIndex := int(t.lastCursor.Y)
-	colIndex := int(t.lastCursor.X)
-	renderRowIndex := int(t.lastRenderCursor.Y)
-	renderColIndex := int(t.lastRenderCursor.X)
+	rowIndex := t.lastCursor.Row
+	colIndex := t.lastCursor.Col
+	renderRowIndex := t.lastRenderCursor.Row
+	renderColIndex := t.lastRenderCursor.Col
 	for ; rowIndex < len(t.terminal.Rows); rowIndex++ {
 		row := t.terminal.Rows[rowIndex]
-		if rowIndex != int(t.lastCursor.Y) {
+		if rowIndex != int(t.lastCursor.Row) {
 			cellPos.X = 0
 			cellPos.Y += t.cellSize.Height
 			renderRowIndex++
@@ -109,11 +128,19 @@ func (t *terminalRenderer) Refresh() {
 				Height: int(t.cellSize.Height),
 				Style:  cell.Style,
 			}
-			object := canvas.Raster{Generator: runeCell.Generate()}
-			object.Move(cellPos)
-			object.Resize(t.cellSize)
-			t.refresh(&object)
-			t.objects = append(t.objects, &object)
+			if t.terminal.Index < len(t.objects) {
+				object := t.objects[t.terminal.Index].(*canvas.Raster)
+				fmt.Println(object)
+				fmt.Println(runeCell)
+				object.Generator = runeCell.Generate()
+				t.refresh(object)
+			} else {
+				object := canvas.Raster{Generator: runeCell.Generate()}
+				object.Move(cellPos)
+				object.Resize(t.cellSize)
+				t.refresh(&object)
+				t.objects = append(t.objects, &object)
+			}
 
 			cellPos.X += t.cellSize.Width
 			renderColIndex++
@@ -123,9 +150,9 @@ func (t *terminalRenderer) Refresh() {
 
 	x := len(t.terminal.Rows[len(t.terminal.Rows)-1].Cells)
 
-	t.lastCursor = fyne.Position{X: float32(x), Y: float32(len(t.terminal.Rows) - 1)}
+	t.lastCursor = Cursor{Col: x, Row: len(t.terminal.Rows) - 1}
 	t.lastCellPos = cellPos
-	t.lastRenderCursor = fyne.Position{X: float32(renderColIndex), Y: float32(renderRowIndex)}
+	t.lastRenderCursor = Cursor{Col: renderColIndex, Row: renderRowIndex}
 }
 
 func (t *terminalRenderer) Objects() []fyne.CanvasObject {
@@ -192,7 +219,7 @@ func (t *terminalRenderer) resize() {
 
 	x := len(t.terminal.Rows[len(t.terminal.Rows)-1].Cells)
 
-	t.lastCursor = fyne.Position{X: float32(x), Y: float32(len(t.terminal.Rows) - 1)}
+	t.lastCursor = Cursor{Col: x, Row: len(t.terminal.Rows) - 1}
 	t.lastCellPos = cellPos
-	t.lastRenderCursor = fyne.Position{X: float32(renderColIndex), Y: float32(renderRowIndex)}
+	t.lastRenderCursor = Cursor{Col: renderColIndex, Row: renderRowIndex}
 }

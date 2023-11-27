@@ -16,9 +16,6 @@ import (
 type Rendering struct {
 	config      *config.Config
 	termColor   termcolor.TermColor
-	rows        []ui.TerminalRow
-	cells       []ui.RuneCell
-	rowIndex    int
 	terminal    *ui.Terminal
 	isNewLine   bool
 	isNewOutput bool
@@ -26,12 +23,9 @@ type Rendering struct {
 }
 
 func Render(scrollContainer *container.Scroll, terminal *ui.Terminal, process io.Reader, config *config.Config) {
-	rendering := &Rendering{
+	rd := &Rendering{
 		config:      config,
 		termColor:   termcolor.New(config),
-		rows:        make([]ui.TerminalRow, 1),
-		cells:       make([]ui.RuneCell, 0),
-		rowIndex:    0,
 		terminal:    terminal,
 		isNewLine:   false,
 		isNewOutput: false,
@@ -49,9 +43,9 @@ func Render(scrollContainer *container.Scroll, terminal *ui.Terminal, process io
 		},
 	}
 
-	rendering.terminal.Rows = rendering.rows
-
-	rendering.rows[0] = ui.TerminalRow{Cells: rendering.cells}
+	rd.terminal.Rows = []ui.TerminalRow{
+		{Cells: make([]ui.RuneCell, 0)},
+	}
 
 	go func() {
 		reader := bufio.NewReader(process)
@@ -60,17 +54,18 @@ func Render(scrollContainer *container.Scroll, terminal *ui.Terminal, process io
 			r := read(reader)
 			if controlfunction.IsControlCharacter(r) {
 				functionName, rs := getControlFunction([]rune{r}, reader)
-				rendering.handleControlFunction(functionName, rs)
+				rd.handleControlFunction(functionName, rs)
 			} else {
-				rendering.cells = append(rendering.cells, ui.RuneCell{
+				rd.terminal.Rows[rd.terminal.Cursor.Row].Cells = append(rd.terminal.Rows[rd.terminal.Cursor.Row].Cells, ui.RuneCell{
 					Rune:  r,
-					Style: rendering.nextStyle,
+					Style: rd.nextStyle,
 				})
 
-				rendering.rows[rendering.rowIndex] = ui.TerminalRow{Cells: rendering.cells}
+				rd.terminal.Cursor.Col++
+				rd.terminal.Index++
 
-				if !rendering.isNewOutput {
-					rendering.isNewOutput = true
+				if !rd.isNewOutput {
+					rd.isNewOutput = true
 				}
 			}
 		}
@@ -81,13 +76,13 @@ func Render(scrollContainer *container.Scroll, terminal *ui.Terminal, process io
 		for {
 			time.Sleep(deplay)
 
-			if rendering.isNewOutput {
-				rendering.isNewOutput = false
+			if rd.isNewOutput {
+				rd.isNewOutput = false
 
-				rendering.terminal.Refresh()
+				rd.terminal.Refresh()
 
-				if rendering.isNewLine {
-					rendering.isNewLine = false
+				if rd.isNewLine {
+					rd.isNewLine = false
 					scrollContainer.ScrollToBottom()
 				}
 			}

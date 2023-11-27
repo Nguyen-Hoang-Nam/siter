@@ -32,48 +32,61 @@ func (r *Rendering) handleSGR(rs []rune) {
 		params[0] = "0"
 	}
 
-	isFgBoldColor := false
-	isBgBoldColor := false
+	// Mode
+	fgColorIntensity := ui.NormalIntenisty
+	bgColorIntensity := ui.NormalIntenisty
 	isItalic := false
 	underline := ui.NoUnderline
-	fgMode := Color16Mode
-	bgMode := Color16Mode
+	blink := ui.NoBlink
+	isInverse := false
+	isInvisible := false
+	isStrike := false
+	isBgDefault := true
+	isOverline := false
+	isUnderlineColorDefault := true
+	verticalAlign := ui.NormalBaseline
+
+	fgColorMode := Color16Mode
+	fgColor, fgColorR, fgColorG, fgColorB, fgColorA := -1, -1, -1, -1, -1
+	var fgColorVal color.Color = r.termColor.Foreground
+
+	bgColorMode := Color16Mode
+	bgColor, bgColorR, bgColorG, bgColorB, bgColorA := -1, -1, -1, -1, -1
+	var bgColorVal color.Color = r.termColor.Background
+
 	underlineColorMode := Color16Mode
-	fg := -1
-	bg := -1
-	underlineColor := -1
-	fgR := -1
-	fgG := -1
-	fgB := -1
-	fgA := -1
-	bgR := -1
-	bgG := -1
-	bgB := -1
-	bgA := -1
-	underlineColorR := -1
-	underlineColorG := -1
-	underlineColorB := -1
-	underlineColorA := -1
-	fgColor := r.termColor.Foreground
-	var bgColor color.Color = color.Transparent
+	underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA := -1, -1, -1, -1, -1
 	var underlineColorVal color.Color = r.termColor.Foreground
 
 	for index := 0; index < len(params); index++ {
 		i := parseInt(params[index])
 
 		if i == 0 {
-			isFgBoldColor = false
-			isBgBoldColor = false
+			fgColorIntensity = ui.NormalIntenisty
+			bgColorIntensity = ui.NormalIntenisty
 			isItalic = false
 			underline = ui.NoUnderline
-			fgMode = Color16Mode
-			bgMode = Color16Mode
+			blink = ui.NoBlink
+			isInverse = false
+			isInvisible = false
+			isStrike = false
+			isOverline = false
+			verticalAlign = ui.NormalBaseline
+
+			fgColorMode = Color16Mode
+			fgColor = -1
+
+			isBgDefault = true
+			bgColorMode = Color16Mode
+			bgColor = -1
+
+			isUnderlineColorDefault = true
 			underlineColorMode = Color16Mode
-			fg = -1
-			bg = -1
 			underlineColor = -1
 		} else if i == 1 {
-			isFgBoldColor = true
+			fgColorIntensity = ui.BoldIntensity
+		} else if i == 2 {
+			fgColorIntensity = ui.DimIntensity
 		} else if i == 3 {
 			isItalic = true
 		} else if i == 4 {
@@ -96,67 +109,106 @@ func (r *Rendering) handleSGR(rs []rune) {
 			} else {
 				underline = ui.StraightUnderline
 			}
+		} else if i == 5 {
+			blink = ui.NormalBlink
+		} else if i == 6 {
+			blink = ui.RapidBlink
 		} else if i == 7 {
-			fgMode, fg, fgR, fgG, fgB, fgA, bgMode, bg, bgR, bgG, bgB, bgA = bgMode, bg, bgR, bgG, bgB, bgA, fgMode, fg, fgR, fgG, fgB, fgA
+			isInverse = true
+		} else if i == 8 {
+			isInvisible = true
+		} else if i == 9 {
+			isStrike = true
+		} else if i == 21 {
+			underline = ui.DoubleUnderline
+		} else if i == 22 {
+			fgColorIntensity = ui.NormalIntenisty
+		} else if i == 23 {
+			isItalic = false
 		} else if i == 24 {
 			underline = ui.NoUnderline
+		} else if i == 25 {
+			blink = ui.NormalBlink
+		} else if i == 27 {
+			isInverse = false
+		} else if i == 28 {
+			isInvisible = false
+		} else if i == 29 {
+			isStrike = false
 		} else if i > 29 && i < 38 {
-			fgMode = 0
-			fg = i - 30
+			fgColorMode = 0
+			fgColor = i - 30
 		} else if i == 38 {
 			ind, mode, c256, r, g, b, a, err := parseColor(index, params)
 			if err == nil {
-				index, fgMode, fg, fgR, fgG, fgB, fgA = ind, mode, c256, r, g, b, a
+				index, fgColorMode, fgColor, fgColorR, fgColorG, fgColorB, fgColorA = ind, mode, c256, r, g, b, a
 			}
 		} else if i > 39 && i < 48 {
-			bgMode = 0
-			bg = i - 40
+			isBgDefault = false
+			bgColorMode = 0
+			bgColor = i - 40
 		} else if i == 48 {
+			isBgDefault = false
 			ind, mode, c256, r, g, b, a, err := parseColor(index, params)
 			if err == nil {
-				index, bgMode, bg, bgR, bgG, bgB, bgA = ind, mode, c256, r, g, b, a
+				index, bgColorMode, bgColor, bgColorR, bgColorG, bgColorB, bgColorA = ind, mode, c256, r, g, b, a
 			}
+		} else if i == 49 {
+			isBgDefault = true
+		} else if i == 53 {
+			isOverline = true
+		} else if i == 55 {
+			isOverline = false
 		} else if i == 58 {
+			isUnderlineColorDefault = false
 			ind, mode, c256, r, g, b, a, err := parseColor(index, params)
 			if err == nil {
 				index, underlineColorMode, underlineColor, underlineColorR, underlineColorG, underlineColorB, underlineColorA = ind, mode, c256, r, g, b, a
 			}
+		} else if i == 59 {
+			isUnderlineColorDefault = true
+		} else if i == 73 {
+			verticalAlign = ui.SuperScript
+		} else if i == 74 {
+			verticalAlign = ui.SubScript
+		} else if i == 75 {
+			verticalAlign = ui.NormalBaseline
 		} else if i > 89 && i < 98 {
-			fgMode = 0
-			fg = i - 90
-			isFgBoldColor = true
+			fgColorMode = 0
+			fgColor = i - 90
 		} else if i > 99 && i < 108 {
-			bgMode = 0
-			bg = i - 100
-			isBgBoldColor = true
+			isBgDefault = false
+			bgColorMode = 0
+			bgColor = i - 100
+			bgColorIntensity = ui.BoldIntensity
 		}
 	}
 
-	if fgMode == Color16Mode {
-		if fg != -1 {
-			if isFgBoldColor {
-				fg += 8
+	if fgColorMode == Color16Mode {
+		if fgColor != -1 {
+			if fgColorIntensity == ui.BoldIntensity {
+				fgColor += 8
 			}
-			fgColor = r.termColor.Color16[fg]
+			fgColorVal = r.termColor.Color16[fgColor]
 		}
 	} else {
-		fgColor = generateColor(fgMode, fg, fgR, fgG, fgB, fgA, r.termColor)
+		fgColorVal = generateColor(fgColorMode, fgColor, fgColorR, fgColorG, fgColorB, fgColorA, r.termColor)
 	}
 
-	if bgMode == Color16Mode {
-		if bg != -1 {
-			if isBgBoldColor {
-				bg += 8
+	if bgColorMode == Color16Mode {
+		if !isBgDefault {
+			if bgColorIntensity == ui.BoldIntensity {
+				bgColor += 8
 			}
-			bgColor = r.termColor.Color16[bg]
+			bgColorVal = r.termColor.Color16[bgColor]
 		}
 	} else {
-		bgColor = generateColor(bgMode, bg, bgR, bgG, bgB, bgA, r.termColor)
+		bgColorVal = generateColor(bgColorMode, bgColor, bgColorR, bgColorG, bgColorB, bgColorA, r.termColor)
 	}
 
 	if underline != ui.NoUnderline {
 		if underlineColorMode == Color16Mode {
-			if underlineColor != -1 {
+			if !isUnderlineColorDefault {
 				underlineColorVal = r.termColor.Color16[underlineColor]
 			}
 		} else {
@@ -166,14 +218,40 @@ func (r *Rendering) handleSGR(rs []rune) {
 		underlineColorVal = color.Transparent
 	}
 
-	r.nextStyle.ForegroundColor = fgColor
-	r.nextStyle.BackgroundColor = bgColor
+	// Todo: optimize underlineColorVal override
+	if isInverse {
+		fgColorVal, bgColorVal, underlineColorVal = bgColorVal, fgColorVal, bgColorVal
+	}
+
+	if bgColorVal == r.termColor.Background {
+		bgColorVal = color.Transparent
+	}
+
+	r.nextStyle.ForegroundColor = fgColorVal
+	r.nextStyle.BackgroundColor = bgColorVal
 	r.nextStyle.FontStyle = ui.FontStyle{
 		Italic: isItalic,
-		Bold:   isFgBoldColor,
+		Bold:   fgColorIntensity == ui.BoldIntensity,
 	}
 	r.nextStyle.Underline = underline
 	r.nextStyle.UnderlineColor = underlineColorVal
+	r.nextStyle.Overline = isOverline
+	r.nextStyle.OverlineColor = fgColorVal
+	r.nextStyle.Strike = isStrike
+	r.nextStyle.StrikeColor = fgColorVal
+	r.nextStyle.Blink = blink
+	r.nextStyle.Invisible = isInvisible
+	r.nextStyle.VerticalAlign = verticalAlign
+
+	if fgColorIntensity == ui.BoldIntensity {
+		r.nextStyle.UnderlineWidth = 2
+		r.nextStyle.OverlineWidth = 2
+		r.nextStyle.StrikeWidth = 2
+	} else {
+		r.nextStyle.UnderlineWidth = 1
+		r.nextStyle.OverlineWidth = 1
+		r.nextStyle.StrikeWidth = 1
+	}
 }
 
 func parseInt(s string) int {

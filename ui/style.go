@@ -10,3 +10,27 @@ const (
 	DottedUnderline
 	DashedUnderline
 )
+
+type ColorIntensity int
+
+const (
+	NormalIntenisty ColorIntensity = iota
+	BoldIntensity
+	DimIntensity
+)
+
+type BlinkStyle int
+
+const (
+	NoBlink BlinkStyle = iota
+	NormalBlink
+	RapidBlink
+)
+
+type VerticalAlignStyle int
+
+const (
+	NormalBaseline VerticalAlignStyle = iota
+	SuperScript
+	SubScript
+)

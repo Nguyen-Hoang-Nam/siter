@@ -36,6 +36,9 @@ type RuneCellStyle struct {
 	Overline       bool
 	OverlineColor  color.Color
 	OverlineWidth  int
+	Blink          BlinkStyle
+	Invisible      bool // Not support due to security risk kitty#266
+	VerticalAlign  VerticalAlignStyle
 }
 
 type RuneCell struct {

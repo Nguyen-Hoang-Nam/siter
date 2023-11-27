@@ -16,30 +16,29 @@ func (r *Rendering) handleControlFunction(functionName controlfunction.FunctionN
 	}
 }
 
-func (r *Rendering) handleLF() {
-	r.cells = append(r.cells, ui.RuneCell{
-		Rune:  '\n',
-		Style: r.nextStyle,
-	})
-	r.cells = make([]ui.RuneCell, 0)
-	if len(r.rows) == r.config.ScrollbackLines {
-		r.rows = append(r.rows[1:], ui.TerminalRow{Cells: r.cells})
+func (rd *Rendering) handleLF() {
+	newline := make([]ui.RuneCell, 0)
+	if len(rd.terminal.Rows) == rd.config.ScrollbackLines {
+		rd.terminal.Rows = append(rd.terminal.Rows[1:], ui.TerminalRow{Cells: newline})
 	} else {
-		r.rows = append(r.rows, ui.TerminalRow{Cells: r.cells})
-		r.rowIndex++
+		rd.terminal.Rows = append(rd.terminal.Rows, ui.TerminalRow{Cells: newline})
+		rd.terminal.Cursor.Row++
 	}
-	r.terminal.Rows = r.rows
+	rd.terminal.Cursor.Col = 0
 
-	if !r.isNewLine {
-		r.isNewLine = true
+	if !rd.isNewLine {
+		rd.isNewLine = true
 	}
 }
 
-func (r *Rendering) handleBS() {
-	r.cells = r.cells[:len(r.cells)-1]
-	r.rows[r.rowIndex] = ui.TerminalRow{Cells: r.cells}
+func (rd *Rendering) handleBS() {
+	if rd.terminal.Cursor.Col > 0 {
+		rd.terminal.Rows[rd.terminal.Cursor.Row].Cells = rd.terminal.Rows[rd.terminal.Cursor.Row].Cells[:len(rd.terminal.Rows[rd.terminal.Cursor.Row].Cells)-1]
+		rd.terminal.Cursor.Col--
+		rd.terminal.Index--
 
-	if !r.isNewOutput {
-		r.isNewOutput = true
+		if !rd.isNewOutput {
+			rd.isNewOutput = true
+		}
 	}
 }
